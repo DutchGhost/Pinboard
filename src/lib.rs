@@ -15,8 +15,8 @@ pub mod implement {
     /// ```
     /// #![feature(pin)]
     /// 
-    /// extern crate pinboard;
-    /// use pinboard::AsPin;
+    /// extern crate pinpoint;
+    /// use pinpoint::AsPin;
     /// 
     /// use std::pin::PinMut;
     /// 

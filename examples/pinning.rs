@@ -1,7 +1,7 @@
 #![feature(pin)]
-extern crate pinboard;
+extern crate pinpoint;
 
-use pinboard::AsPin;
+use pinpoint::AsPin;
 
 use std::marker::Unpin;
 use std::pin::PinMut;
