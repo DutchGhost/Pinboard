@@ -2,6 +2,9 @@
 name = "pinboard"
 version = "0.1.0"
 authors = ["DutchGhost <kasper199914@gmail.com>"]
+description = "Crate that provides the `AsPin` trait, which allows for conversion from any mutable reference to a pinned reference"
+license = "MIT"
+repository = "https://github.com/DutchGhost/pinboard"
 edition = "2018"
 
 [dependencies]

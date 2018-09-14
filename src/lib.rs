@@ -7,7 +7,7 @@ pub mod implement {
     use std::marker::Unpin;
     use std::pin::PinMut;
 
-    /// Converts a mutable reference into a Pinned reference. See the [`pin` module].
+    /// Converts a mutable reference into a pinned reference. See the [`pin` module].
     ///
     /// [`pin` module]: https://doc.rust-lang.org/nightly/std/pin/struct.PinMut.html
     /// 
