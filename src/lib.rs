@@ -10,6 +10,24 @@ pub mod implement {
     /// Converts a mutable reference into a Pinned reference. See the [`pin` module].
     ///
     /// [`pin` module]: https://doc.rust-lang.org/nightly/std/pin/struct.PinMut.html
+    /// 
+    /// # Examples
+    /// ```
+    /// #![feature(pin)]
+    /// 
+    /// extern crate pinboard;
+    /// use pinboard::AsPin;
+    /// 
+    /// use std::pin::PinMut;
+    /// 
+    /// let mut v = vec![5, 4, 3, 2, 1];
+    /// let mut pin: PinMut<[u32]> = v.as_pin();
+    /// 
+    /// pin.sort();
+    /// 
+    /// assert_eq!(pin.as_ref(), [1, 2, 3, 4, 5]);
+    /// 
+    /// ```
     pub trait AsPin<T: ?Sized + Unpin> {
         /// Performs the conversion.
         fn as_pin(&mut self) -> PinMut<T>;
@@ -33,13 +51,6 @@ pub mod implement {
     // SLICE IMPLS
     ///////////////////////////////////////////////
     impl<T: Unpin> AsPin<[T]> for [T] {
-        #[inline]
-        fn as_pin(&mut self) -> PinMut<Self> {
-            PinMut::new(self)
-        }
-    }
-
-    impl AsPin<str> for str {
         #[inline]
         fn as_pin(&mut self) -> PinMut<Self> {
             PinMut::new(self)
