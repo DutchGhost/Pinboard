@@ -1,6 +1,6 @@
 [package]
 name = "pinpoint"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["DutchGhost <kasper199914@gmail.com>"]
 description = "Crate that provides the `AsPin` trait, which allows for conversion from any mutable reference to a pinned reference. To enable the `AsPin` trait, use this crate with the `pinned` feature enabled"
 license = "MIT"
@@ -11,3 +11,7 @@ edition = "2018"
 
 [features]
 pinned = []
+
+[package.metadata.docs.rs]
+features = ["pinned"]
+no-default-features = true
