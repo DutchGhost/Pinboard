@@ -2,10 +2,13 @@
 name = "pinpoint"
 version = "0.1.1"
 authors = ["DutchGhost <kasper199914@gmail.com>"]
-description = "Crate that provides the `AsPin` trait, which allows for conversion from any mutable reference to a pinned reference. To enable the `AsPin` trait, use this crate with the `pinned` feature enabled"
+description = "Crate for pinned references"
 license = "MIT"
 repository = "https://github.com/DutchGhost/pinpoint"
 edition = "2018"
+
+keywoard = ["pin", "as_pin", "pinned"]
+categories = ["rust-patterns"]
 
 [dependencies]
 
