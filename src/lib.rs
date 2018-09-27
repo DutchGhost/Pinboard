@@ -108,4 +108,29 @@ mod tests {
 
         assert_eq!(n, 0);
     }
+
+    #[test]
+    fn pin_into_pin() {
+        use super::pinned::IntoPin;
+
+        fn quark<'a, T: IntoPin<&'a mut u32>>(x: T) {
+            let mut pin = x.into_pin();
+            *pin = 0;
+        }
+
+        // test on pinned ref
+        {
+            let mut n = 9;
+            let p: Pin<&mut u32> = (&mut n).into_pin();
+            quark(p);
+            assert_eq!(n, 0);
+        }
+
+        // test on plain ref
+        {
+            let mut n = 9;
+            quark(&mut n);
+            assert_eq!(n, 0);
+        }
+    }
 }
