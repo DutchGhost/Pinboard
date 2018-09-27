@@ -161,6 +161,28 @@ pub trait IntoPin<T: Unpin> {
 }
 
 ///////////////////////////////////////////////
+// Pin<T> IMPL
+///////////////////////////////////////////////
+impl <T: Unpin> IntoPin<T> for Pin<T>
+{
+    #[inline]
+    fn into_pin(self) -> Self {
+        self
+    }
+}
+
+impl <'b, 'a: 'b, T: Unpin> IntoPin<&'b T> for Pin<&'a mut T>
+{
+    #[inline]
+    fn into_pin(self) -> Pin<&'b T> {
+        Pin::into_ref(self)
+    }
+}
+///////////////////////////////////////////////
+///////////////////////////////////////////////
+
+
+///////////////////////////////////////////////
 // GENERIC IMPL
 ///////////////////////////////////////////////
 impl <'b, 'a: 'b, T: Unpin + ?Sized> IntoPin<&'b T> for &'a T
