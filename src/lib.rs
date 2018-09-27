@@ -3,158 +3,7 @@
 //! This crate provides an `AsPin` trait. AsPin can be used in the same fashion as `AsRef` and `AsMut`.
 
 #[cfg(feature = "pinned")]
-pub mod as_pin {
-    use std::pin::Pin;
-    use std::marker::Unpin;
-
-    /// Converts a non-mutable reference into a non-mutable pinned reference.
-    pub trait AsPin<P: ?Sized> {
-
-        /// Performs the conversion.
-        fn as_pin(&self) -> Pin<&P>;
-    }
-
-    ///////////////////////////////////////////////
-    // GENERIC IMPL
-    ///////////////////////////////////////////////
-    impl <'a, T: ?Sized, U: ?Sized> AsPin<U> for &'a T
-    where
-        T: AsPin<U>
-    {
-        #[inline]
-        fn as_pin(&self) -> Pin<&U> {
-            (*self).as_pin()
-        }
-    }
-
-    impl <'a, T: ?Sized, U: ?Sized> AsPin<U> for &'a mut T
-    where
-        T: AsPin<U>
-    {
-        #[inline]
-        fn as_pin(&self) -> Pin<&U> {
-            <T as AsPin<U>>::as_pin(*self)
-        }
-    }
-
-    ///////////////////////////////////////////////
-    // SLICE IMPL
-    ///////////////////////////////////////////////
-    impl<T: Unpin> AsPin<[T]> for [T] {
-        #[inline]
-        fn as_pin(&self) -> Pin<&[T]> {
-            Pin::new(self)
-        }
-    }
-
-    ///////////////////////////////////////////////
-    // BOX IMPL
-    ///////////////////////////////////////////////
-    impl<T: ?Sized + Unpin> AsPin<T> for Box<T> {
-        #[inline]
-        fn as_pin(&self) -> Pin<&T> {
-            Pin::new(self.as_ref())
-        }
-    }
-
-    impl<T: ?Sized + Unpin> AsPin<Box<T>> for Box<T> {
-        #[inline]
-        fn as_pin(&self) -> Pin<&Box<T>> {
-            Pin::new(self)
-        }
-    }
-
-    ///////////////////////////////////////////////
-    // VEC IMPL
-    ///////////////////////////////////////////////
-    
-    impl<T: Unpin> AsPin<[T]> for Vec<T> {
-        #[inline]
-        fn as_pin(&self) -> Pin<&[T]> {
-            Pin::new(self)
-        }
-    }
-
-    impl<T: Unpin> AsPin<Vec<T>> for Vec<T> {
-        #[inline]
-        fn as_pin(&self) -> Pin<&Vec<T>> {
-            Pin::new(self)
-        }
-    }
-}
-
-#[cfg(feature = "pinned")]
-pub mod as_pin_mut {
-    use super::as_pin::AsPin;
-
-    use std::pin::Pin;
-    use std::marker::Unpin;
-
-    /// Converts a mutable reference into a mutable pinned reference.
-    pub trait AsPinMut<P: ?Sized>: AsPin<P> {
-        /// Performs the conversion.
-        fn as_pin_mut(&mut self) -> Pin<&mut P>;
-    }
-
-    ///////////////////////////////////////////////
-    // GENERIC IMPL
-    ///////////////////////////////////////////////
-
-    impl <'a, T: ?Sized, U: ?Sized> AsPinMut<U> for &'a mut T
-    where
-        T: AsPinMut<U>
-    {
-        #[inline]
-        fn as_pin_mut(&mut self) -> Pin<&mut U> {
-            <T as AsPinMut<U>>::as_pin_mut(*self)
-        }
-    }
-
-    ///////////////////////////////////////////////
-    // SLICE IMPL
-    ///////////////////////////////////////////////
-    impl<T: Unpin> AsPinMut<[T]> for [T] {
-        #[inline]
-        fn as_pin_mut(&mut self) -> Pin<&mut [T]> {
-            Pin::new(self)
-        }
-    }
-
-    ///////////////////////////////////////////////
-    // BOX IMPL
-    ///////////////////////////////////////////////
-    impl<T: ?Sized + Unpin> AsPinMut<T> for Box<T> {
-        #[inline]
-        fn as_pin_mut(&mut self) -> Pin<&mut T> {
-            Pin::new(self.as_mut())
-        }
-    }
-
-    impl<T: ?Sized + Unpin> AsPinMut<Box<T>> for Box<T> {
-        #[inline]
-        fn as_pin_mut(&mut self) -> Pin<&mut Box<T>> {
-            Pin::new(self)
-        }
-    }
-
-    ///////////////////////////////////////////////
-    // VEC IMPL
-    ///////////////////////////////////////////////
-    
-    impl<T: Unpin> AsPinMut<[T]> for Vec<T> {
-        #[inline]
-        fn as_pin_mut(&mut self) -> Pin<&mut [T]> {
-            Pin::new(self)
-        }
-    }
-
-    impl<T: Unpin> AsPinMut<Vec<T>> for Vec<T> {
-        #[inline]
-        fn as_pin_mut(&mut self) -> Pin<&mut Vec<T>> {
-            Pin::new(self)
-        }
-    }
-}
+pub mod pinned;
 
 #[cfg(all(test, feature = "pinned"))]
 mod tests {
@@ -162,7 +11,7 @@ mod tests {
  
     #[test]
     fn box_as_pin() {
-        use super::as_pin::AsPin;
+        use super::pinned::AsPin;
         let b = Box::new(1);
 
         // &Box to Pin<&Box>
@@ -176,9 +25,9 @@ mod tests {
         }
     }
 
-     #[test]
+    #[test]
     fn box_as_pin_mut() {
-        use super::as_pin_mut::AsPinMut;
+        use super::pinned::AsPinMut;
         let mut b = Box::new(1);
 
         // &mut Box to Pin<&mut Box>
@@ -191,8 +40,39 @@ mod tests {
             let pin: Pin<&mut u32> = b.as_pin_mut();
         }
     }
-}
 
-#[cfg(feature = "pinned")]
-pub use self::as_pin::AsPin;
-pub use self::as_pin_mut::AsPinMut;
+    #[test]
+    fn box_into_pin() {
+        use super::pinned::IntoPin;
+        let mut b = Box::new(1);
+
+        // &mut Box<T> to Pin<&mut Box<T>>
+        {
+            let pin: Pin<&mut Box<u32>> = (&mut b).into_pin();
+        }
+
+        // &mut Box<T> to Pin<&mut T>
+        {
+            let pin: Pin<&mut u32> = (&mut b).into_pin();
+        }
+
+        // &Box<T> to Pin<&T>
+        {
+            let pin: Pin<&u32> = (&b).into_pin();
+        }
+        // &mut Box<T> to Pin<&T>
+        {
+            let pin: Pin<&u32> = (&mut b).into_pin();
+        }
+    }
+
+    #[test]
+    fn test_arbitrary_into_pin() {
+        use super::pinned::IntoPin;
+        let mut n: u64 = 9;
+
+        {
+            let pin: Pin<&mut u64> = (&mut n).into_pin();
+        }
+    }
+}
