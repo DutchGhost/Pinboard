@@ -17,15 +17,20 @@ pub mod as_pin {
     ///////////////////////////////////////////////
     // GENERIC IMPL
     ///////////////////////////////////////////////
-
-    impl <'a, T: AsPin<U>, U> AsPin<U> for &'a T {
+    impl <'a, T: ?Sized, U: ?Sized> AsPin<U> for &'a T
+    where
+        T: AsPin<U>
+    {
         #[inline]
         fn as_pin(&self) -> Pin<&U> {
             (*self).as_pin()
         }
     }
 
-    impl <'a, T: AsPin<U>, U> AsPin<U> for &'a mut T {
+    impl <'a, T: ?Sized, U: ?Sized> AsPin<U> for &'a mut T
+    where
+        T: AsPin<U>
+    {
         #[inline]
         fn as_pin(&self) -> Pin<&U> {
             <T as AsPin<U>>::as_pin(*self)
@@ -45,14 +50,14 @@ pub mod as_pin {
     ///////////////////////////////////////////////
     // BOX IMPL
     ///////////////////////////////////////////////
-    impl<T: Unpin> AsPin<T> for Box<T> {
+    impl<T: ?Sized + Unpin> AsPin<T> for Box<T> {
         #[inline]
         fn as_pin(&self) -> Pin<&T> {
             Pin::new(self.as_ref())
         }
     }
 
-    impl<T: Unpin> AsPin<Box<T>> for Box<T> {
+    impl<T: ?Sized + Unpin> AsPin<Box<T>> for Box<T> {
         #[inline]
         fn as_pin(&self) -> Pin<&Box<T>> {
             Pin::new(self)
@@ -95,7 +100,10 @@ pub mod as_pin_mut {
     // GENERIC IMPL
     ///////////////////////////////////////////////
 
-    impl <'a, T: AsPinMut<U>, U> AsPinMut<U> for &'a mut T {
+    impl <'a, T: ?Sized, U: ?Sized> AsPinMut<U> for &'a mut T
+    where
+        T: AsPinMut<U>
+    {
         #[inline]
         fn as_pin_mut(&mut self) -> Pin<&mut U> {
             <T as AsPinMut<U>>::as_pin_mut(*self)
@@ -115,14 +123,14 @@ pub mod as_pin_mut {
     ///////////////////////////////////////////////
     // BOX IMPL
     ///////////////////////////////////////////////
-    impl<T: Unpin> AsPinMut<T> for Box<T> {
+    impl<T: ?Sized + Unpin> AsPinMut<T> for Box<T> {
         #[inline]
         fn as_pin_mut(&mut self) -> Pin<&mut T> {
             Pin::new(self.as_mut())
         }
     }
 
-    impl<T: Unpin> AsPinMut<Box<T>> for Box<T> {
+    impl<T: ?Sized + Unpin> AsPinMut<Box<T>> for Box<T> {
         #[inline]
         fn as_pin_mut(&mut self) -> Pin<&mut Box<T>> {
             Pin::new(self)
