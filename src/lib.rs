@@ -67,12 +67,45 @@ mod tests {
     }
 
     #[test]
+    fn vec_into_pin() {
+        use super::pinned::IntoPin;
+        let mut v = vec![1, 2, 3, 4];
+
+        // &mut Vec<T> to Pin<&mut Vec<T>>
+        {
+            let mut pin: Pin<&mut Vec<u32>> = (&mut v).into_pin();
+            pin[0] = 0;
+        }
+
+        // &mut Vec<T> to Pin<&mut [T]>
+        {
+            let mut pin: Pin<&mut [u32]> = (&mut v).into_pin();
+            pin[1] = 0;
+        }
+
+        // &Vec<T> to Pin<&[T]>
+        {
+            let pin: Pin<&[u32]> = (&v).into_pin();
+
+            assert_eq!(pin[..2], [0, 0][..]);
+        }
+        // &mut Box<T> to Pin<&T>
+        {
+            let pin: Pin<&[u32]> = (&mut v).into_pin();
+            assert_eq!(pin[..3], [0, 0, 3][..]);
+        }
+    }
+
+    #[test]
     fn test_arbitrary_into_pin() {
         use super::pinned::IntoPin;
         let mut n: u64 = 9;
 
         {
-            let pin: Pin<&mut u64> = (&mut n).into_pin();
+            let mut pin: Pin<&mut u64> = (&mut n).into_pin();
+            *pin = 0;
         }
+
+        assert_eq!(n, 0);
     }
 }
