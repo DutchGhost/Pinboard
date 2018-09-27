@@ -192,7 +192,7 @@ impl <'b, 'a: 'b, T: Unpin + ?Sized> IntoPin<&'b mut T> for &'a mut T
 ///////////////////////////////////////////////
 // VEC IMPL
 ///////////////////////////////////////////////
-impl <'b, 'a: 'b, T: Unpin> IntoPin<Vec<T>> for Vec<T> {
+impl <T: Unpin> IntoPin<Vec<T>> for Vec<T> {
     #[inline]
     fn into_pin(self) -> Pin<Self> {
         Pin::new(self)
@@ -221,6 +221,33 @@ impl <'b, 'a: 'b, T: Unpin> IntoPin<&'b mut [T]> for &'a mut Vec<T> {
 }
 ///////////////////////////////////////////////
 ///////////////////////////////////////////////
+
+///////////////////////////////////////////////
+// STRING IMPL
+///////////////////////////////////////////////
+impl IntoPin<String> for String {
+    #[inline]
+    fn into_pin(self) -> Pin<Self> {
+        Pin::new(self)
+    }
+}
+
+impl <'b, 'a: 'b> IntoPin<&'b str> for &'a String {
+    #[inline]
+    fn into_pin(self) -> Pin<&'b str> {
+        Pin::new(self)
+    }
+}
+
+impl <'b, 'a: 'b> IntoPin<&'b str> for &'a mut String {
+    #[inline]
+    fn into_pin(self) -> Pin<&'b str> {
+        Pin::new(self)
+    }
+}
+///////////////////////////////////////////////
+///////////////////////////////////////////////
+
 
 ///////////////////////////////////////////////
 // BOX IMPL
