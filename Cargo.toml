@@ -1,20 +1,17 @@
 [package]
 name = "pinpoint"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["DutchGhost <kasper199914@gmail.com>"]
 description = "Crate for pinned references"
 license = "MIT"
-repository = "https://github.com/DutchGhost/pinpoint"
+repository = "https://github.com/DutchGhost/pinpoint/tree/dev"
 edition = "2018"
 
-keywoard = ["pin", "as_pin", "pinned"]
+keywoard = ["pin", "into_pin", "pinned"]
 categories = ["rust-patterns"]
 
 [dependencies]
 
 [features]
 pinned = []
-
-[package.metadata.docs.rs]
-features = ["pinned"]
-no-default-features = true
+slice_of_cells = []
