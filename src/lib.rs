@@ -44,7 +44,7 @@
 //! assert_eq!(*b, [1, 2, 3, 4]);
 //! ```
 //! # Features
-//! 
+//!
 //! In order to use the `IntoPin` trait, this crate should be used with the feature `pinned` of this crate turned on.
 //! In order to create a pinned slice containg Cell types from a Cell containing a slice, use the `slice_of_cells` feature of this crate.
 

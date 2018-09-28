@@ -241,10 +241,8 @@ impl<'b, 'a: 'b, 'c, T: Clone + Unpin + ?Sized> IntoPin<&'b T> for &'a Cow<'c, T
 impl<'b, 'a: 'b, 'c, T: Clone + Unpin + ?Sized> IntoPin<&'b T> for &'a mut Cow<'c, T> {
     #[inline]
     fn into_pin(self) -> Pin<&'b T> {
-        match self {
-            Cow::Owned(o) => Pin::new(o),
-            Cow::Borrowed(b) => Pin::new(b),
-        }
+        use std::borrow::Borrow;
+        Pin::new(<Cow<'c, T> as Borrow<T>>::borrow(self))
     }
 }
 
@@ -261,20 +259,16 @@ impl<'a> IntoPin<Cow<'a, [u8]>> for Cow<'a, str> {
 impl<'b, 'a: 'b> IntoPin<&'b [u8]> for &'a Cow<'a, str> {
     #[inline]
     fn into_pin(self) -> Pin<&'b [u8]> {
-        match self {
-            Cow::Owned(o) => Pin::new(o.as_ref()),
-            Cow::Borrowed(b) => Pin::new(b.as_ref()),
-        }
+        // Asref into &str, then Asref into &[u8].
+        Pin::new(self.as_ref().as_ref())
     }
 }
 
 impl<'b, 'a: 'b, 'c> IntoPin<&'b [u8]> for &'a mut Cow<'c, str> {
     #[inline]
     fn into_pin(self) -> Pin<&'b [u8]> {
-        match self {
-            Cow::Owned(o) => Pin::new(o.as_bytes()),
-            Cow::Borrowed(b) => Pin::new(b.as_bytes()),
-        }
+        // Asref into &str, then Asref into &[u8].
+        Pin::new(<Cow<'c, str> as AsRef<str>>::as_ref(self).as_ref())
     }
 }
 ///////////////////////////////////////////////
