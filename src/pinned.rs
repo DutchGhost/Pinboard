@@ -1,12 +1,50 @@
 use std::borrow::Cow;
 use std::cell::{Cell, Ref, RefCell, RefMut};
-use std::collections::VecDeque;
 use std::marker::Unpin;
 use std::pin::Pin;
 use std::rc::Rc;
 use std::sync::Arc;
 
 /// A trait that wraps any type implementing `Unpin` into a `Pin`.
+/// # Examples
+/// ```
+/// #![feature(pin)]
+///
+/// extern crate pinpoint;
+/// use std::pin::Pin;
+/// use pinpoint::IntoPin;
+///
+/// let v = vec![1, 2, 3, 4, 5];
+///
+/// let pinned_slice: Pin<&[u32]> = (&v).into_pin();
+/// ```
+///
+/// It is also possible to accept types that implement IntoPin
+///
+/// ```
+/// #![feature(pin)]
+///
+/// extern crate pinpoint;
+/// use std::pin::Pin;
+/// use pinpoint::IntoPin;
+///
+/// fn example<'a, P>(item: P)
+/// where
+///     P: IntoPin<&'a mut [u8]>
+/// {
+///     let mut pin = item.into_pin();
+///
+///     pin.reverse();
+/// }
+///
+/// let mut v = vec![1, 2, 3, 4];
+/// example(&mut v);
+/// assert_eq!(v, [4, 3, 2, 1]);
+///
+/// let mut b: Box<[u8]> = Box::new([4, 3, 2, 1]);
+/// example(&mut b);
+/// assert_eq!(*b, [1, 2, 3, 4]);
+/// ```
 pub trait IntoPin<T: Unpin> {
     /// Performs the wrapping.
     fn into_pin(self) -> Pin<T>;
