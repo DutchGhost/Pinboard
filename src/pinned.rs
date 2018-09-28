@@ -1,14 +1,13 @@
-use std::pin::Pin;
-use std::marker::Unpin;
 use std::borrow::Cow;
+use std::cell::{Cell, Ref, RefCell, RefMut};
+use std::collections::VecDeque;
+use std::marker::Unpin;
+use std::pin::Pin;
 use std::rc::Rc;
 use std::sync::Arc;
-use std::collections::VecDeque;
-use std::cell::{Ref, RefCell, RefMut, Cell};
 
 /// A trait that wraps any type implementing `Unpin` into a `Pin`.
 pub trait IntoPin<T: Unpin> {
-
     /// Performs the wrapping.
     fn into_pin(self) -> Pin<T>;
 }
@@ -16,16 +15,14 @@ pub trait IntoPin<T: Unpin> {
 ///////////////////////////////////////////////
 // Pin<T> IMPL
 ///////////////////////////////////////////////
-impl <T: Unpin> IntoPin<T> for Pin<T>
-{
+impl<T: Unpin> IntoPin<T> for Pin<T> {
     #[inline]
     fn into_pin(self) -> Self {
         self
     }
 }
 
-impl <'b, 'a: 'b, T: Unpin + ?Sized> IntoPin<&'b T> for Pin<&'a mut T>
-{
+impl<'b, 'a: 'b, T: Unpin + ?Sized> IntoPin<&'b T> for Pin<&'a mut T> {
     #[inline]
     fn into_pin(self) -> Pin<&'b T> {
         Pin::into_ref(self)
@@ -37,24 +34,21 @@ impl <'b, 'a: 'b, T: Unpin + ?Sized> IntoPin<&'b T> for Pin<&'a mut T>
 ///////////////////////////////////////////////
 // GENERIC IMPL
 ///////////////////////////////////////////////
-impl <'b, 'a: 'b, T: Unpin + ?Sized> IntoPin<&'b T> for &'a T
-{
+impl<'b, 'a: 'b, T: Unpin + ?Sized> IntoPin<&'b T> for &'a T {
     #[inline]
     fn into_pin(self) -> Pin<&'b T> {
         Pin::new(self)
     }
 }
 
-impl <'b, 'a: 'b, T: Unpin + ?Sized> IntoPin<&'b T> for &'a mut T
-{
+impl<'b, 'a: 'b, T: Unpin + ?Sized> IntoPin<&'b T> for &'a mut T {
     #[inline]
     fn into_pin(self) -> Pin<&'b T> {
         Pin::new(self)
     }
 }
 
-impl <'b, 'a: 'b, T: Unpin + ?Sized> IntoPin<&'b mut T> for &'a mut T
-{
+impl<'b, 'a: 'b, T: Unpin + ?Sized> IntoPin<&'b mut T> for &'a mut T {
     #[inline]
     fn into_pin(self) -> Pin<&'b mut T> {
         Pin::new(self)
@@ -66,35 +60,35 @@ impl <'b, 'a: 'b, T: Unpin + ?Sized> IntoPin<&'b mut T> for &'a mut T
 ///////////////////////////////////////////////
 // VEC IMPL
 ///////////////////////////////////////////////
-impl <T: Unpin> IntoPin<Vec<T>> for Vec<T> {
+impl<T: Unpin> IntoPin<Vec<T>> for Vec<T> {
     #[inline]
     fn into_pin(self) -> Pin<Self> {
         Pin::new(self)
     }
 }
 
-impl <T: Unpin> IntoPin<Box<[T]>> for Vec<T> {
+impl<T: Unpin> IntoPin<Box<[T]>> for Vec<T> {
     #[inline]
     fn into_pin(self) -> Pin<Box<[T]>> {
         Pin::new(self.into_boxed_slice())
     }
 }
 
-impl <'b, 'a: 'b, T: Unpin> IntoPin<&'b [T]> for &'a Vec<T> {
+impl<'b, 'a: 'b, T: Unpin> IntoPin<&'b [T]> for &'a Vec<T> {
     #[inline]
     fn into_pin(self) -> Pin<&'b [T]> {
         Pin::new(self)
     }
 }
 
-impl <'b, 'a: 'b, T: Unpin> IntoPin<&'b [T]> for &'a mut Vec<T> {
+impl<'b, 'a: 'b, T: Unpin> IntoPin<&'b [T]> for &'a mut Vec<T> {
     #[inline]
     fn into_pin(self) -> Pin<&'b [T]> {
         Pin::new(self)
     }
 }
 
-impl <'b, 'a: 'b, T: Unpin> IntoPin<&'b mut [T]> for &'a mut Vec<T> {
+impl<'b, 'a: 'b, T: Unpin> IntoPin<&'b mut [T]> for &'a mut Vec<T> {
     #[inline]
     fn into_pin(self) -> Pin<&'b mut [T]> {
         Pin::new(self)
@@ -127,62 +121,61 @@ impl IntoPin<Vec<u8>> for String {
     }
 }
 
-impl <'b, 'a: 'b> IntoPin<&'b str> for &'a String {
+impl<'b, 'a: 'b> IntoPin<&'b str> for &'a String {
     #[inline]
     fn into_pin(self) -> Pin<&'b str> {
         Pin::new(self)
     }
 }
 
-impl <'b, 'a: 'b> IntoPin<&'b str> for &'a mut String {
+impl<'b, 'a: 'b> IntoPin<&'b str> for &'a mut String {
     #[inline]
     fn into_pin(self) -> Pin<&'b str> {
         Pin::new(self)
     }
 }
 
-impl <'b, 'a: 'b> IntoPin<&'b mut str> for &'a mut String {
+impl<'b, 'a: 'b> IntoPin<&'b mut str> for &'a mut String {
     #[inline]
     fn into_pin(self) -> Pin<&'b mut str> {
         Pin::new(self)
     }
 }
 
-impl <'b, 'a: 'b> IntoPin<&'b [u8]> for &'a String {
+impl<'b, 'a: 'b> IntoPin<&'b [u8]> for &'a String {
     #[inline]
     fn into_pin(self) -> Pin<&'b [u8]> {
         Pin::new(self.as_ref())
     }
 }
-
 ///////////////////////////////////////////////
 ///////////////////////////////////////////////
 
 ///////////////////////////////////////////////
 // BOX IMPL
 ///////////////////////////////////////////////
-impl <T: Unpin + ?Sized> IntoPin<Box<T>> for Box<T> {
+impl<T: Unpin + ?Sized> IntoPin<Box<T>> for Box<T> {
     #[inline]
     fn into_pin(self) -> Pin<Self> {
         Pin::new(self)
     }
 }
 
-impl <'b, 'a: 'b, T: Unpin + ?Sized> IntoPin<&'b T> for &'a Box<T> {
+impl<'b, 'a: 'b, T: Unpin + ?Sized> IntoPin<&'b T> for &'a Box<T> {
     #[inline]
     fn into_pin(self) -> Pin<&'b T> {
         Pin::new(self.as_ref())
     }
 }
 
-impl <'b, 'a: 'b, T: Unpin + ?Sized> IntoPin<&'b T> for &'a mut Box<T> {
+impl<'b, 'a: 'b, T: Unpin + ?Sized> IntoPin<&'b T> for &'a mut Box<T> {
     #[inline]
     fn into_pin(self) -> Pin<&'b T> {
         Pin::new(self.as_mut())
     }
 }
 
-impl <'b, 'a: 'b, T: Unpin + ?Sized> IntoPin<&'b mut T> for &'a mut Box<T> {
+impl<'b, 'a: 'b, T: Unpin + ?Sized> IntoPin<&'b mut T> for &'a mut Box<T> {
     #[inline]
     fn into_pin(self) -> Pin<&'b mut T> {
         Pin::new(self.as_mut())
@@ -194,17 +187,57 @@ impl <'b, 'a: 'b, T: Unpin + ?Sized> IntoPin<&'b mut T> for &'a mut Box<T> {
 ///////////////////////////////////////////////
 // COW IMPL
 ///////////////////////////////////////////////
-impl <'a, T: Clone + Unpin + ?Sized> IntoPin<Cow<'a, T>> for Cow<'a, T> {
+impl<'a, T: Clone + Unpin + ?Sized> IntoPin<Cow<'a, T>> for Cow<'a, T> {
     #[inline]
     fn into_pin(self) -> Pin<Self> {
         Pin::new(self)
     }
 }
 
-impl <'b, 'a: 'b, 'c, T: Clone + Unpin + ?Sized> IntoPin<&'b T> for &'a Cow<'c, T> {
+impl<'b, 'a: 'b, 'c, T: Clone + Unpin + ?Sized> IntoPin<&'b T> for &'a Cow<'c, T> {
     #[inline]
     fn into_pin(self) -> Pin<&'b T> {
         Pin::new(self.as_ref())
+    }
+}
+
+impl<'b, 'a: 'b, 'c, T: Clone + Unpin + ?Sized> IntoPin<&'b T> for &'a mut Cow<'c, T> {
+    #[inline]
+    fn into_pin(self) -> Pin<&'b T> {
+        match self {
+            Cow::Owned(o) => Pin::new(o),
+            Cow::Borrowed(b) => Pin::new(b),
+        }
+    }
+}
+
+impl<'a> IntoPin<Cow<'a, [u8]>> for Cow<'a, str> {
+    #[inline]
+    fn into_pin(self) -> Pin<Cow<'a, [u8]>> {
+        match self {
+            Cow::Owned(o) => Pin::new(Cow::Owned(o.into_bytes())),
+            Cow::Borrowed(b) => Pin::new(Cow::Borrowed(b.as_bytes())),
+        }
+    }
+}
+
+impl<'b, 'a: 'b> IntoPin<&'b [u8]> for &'a Cow<'a, str> {
+    #[inline]
+    fn into_pin(self) -> Pin<&'b [u8]> {
+        match self {
+            Cow::Owned(o) => Pin::new(o.as_ref()),
+            Cow::Borrowed(b) => Pin::new(b.as_ref()),
+        }
+    }
+}
+
+impl<'b, 'a: 'b, 'c> IntoPin<&'b [u8]> for &'a mut Cow<'c, str> {
+    #[inline]
+    fn into_pin(self) -> Pin<&'b [u8]> {
+        match self {
+            Cow::Owned(o) => Pin::new(o.as_bytes()),
+            Cow::Borrowed(b) => Pin::new(b.as_bytes()),
+        }
     }
 }
 ///////////////////////////////////////////////
@@ -213,30 +246,32 @@ impl <'b, 'a: 'b, 'c, T: Clone + Unpin + ?Sized> IntoPin<&'b T> for &'a Cow<'c, 
 ///////////////////////////////////////////////
 // ARC IMPL
 ///////////////////////////////////////////////
-impl <T: Unpin + ?Sized> IntoPin<Arc<T>> for Arc<T> {
+impl<T: Unpin + ?Sized> IntoPin<Arc<T>> for Arc<T> {
     #[inline]
     fn into_pin(self) -> Pin<Self> {
         Pin::new(self)
     }
 }
 
-// @NOTE: THIS *CLONES* IF THERE ARE OTHER ARC OR WEAK POINTERS TO THE T (https://doc.rust-lang.org/nightly/std/sync/struct.Arc.html#method.make_mut)
-impl <'a, 'b: 'a, T: Unpin + Clone + ?Sized> IntoPin<&'a mut T> for &'b mut Arc<T> {
+// @NOTE: THIS *CLONES* IF THERE ARE OTHER ARC OR WEAK POINTERS TO THE T
+// (https://doc.rust-lang.org/nightly/std/sync/struct.Arc.html#method.make_mut)
+impl<'a, 'b: 'a, T: Unpin + Clone + ?Sized> IntoPin<&'a mut T> for &'b mut Arc<T> {
     #[inline]
     fn into_pin(self) -> Pin<&'a mut T> {
         Pin::new(Arc::make_mut(self))
     }
 }
 
-// @NOTE: THIS *CLONES* IF THERE ARE OTHER ARC OR WEAK POINTERS TO THE T (https://doc.rust-lang.org/nightly/std/sync/struct.Arc.html#method.make_mut)
-impl <'a, 'b: 'a, T: Unpin + Clone + ?Sized> IntoPin<&'a T> for &'b mut Arc<T> {
+// @NOTE: THIS *CLONES* IF THERE ARE OTHER ARC OR WEAK POINTERS TO THE T
+// (https://doc.rust-lang.org/nightly/std/sync/struct.Arc.html#method.make_mut)
+impl<'a, 'b: 'a, T: Unpin + Clone + ?Sized> IntoPin<&'a T> for &'b mut Arc<T> {
     #[inline]
     fn into_pin(self) -> Pin<&'a T> {
         Pin::new(Arc::make_mut(self))
     }
 }
 
-impl <'a, 'b: 'a, T: Unpin + ?Sized> IntoPin<&'a T> for &'b Arc<T> {
+impl<'a, 'b: 'a, T: Unpin + ?Sized> IntoPin<&'a T> for &'b Arc<T> {
     #[inline]
     fn into_pin(self) -> Pin<&'a T> {
         Pin::new(self.as_ref())
@@ -248,30 +283,32 @@ impl <'a, 'b: 'a, T: Unpin + ?Sized> IntoPin<&'a T> for &'b Arc<T> {
 ///////////////////////////////////////////////
 // RC IMPL
 ///////////////////////////////////////////////
-impl <T: Unpin + ?Sized> IntoPin<Rc<T>> for Rc<T> {
+impl<T: Unpin + ?Sized> IntoPin<Rc<T>> for Rc<T> {
     #[inline]
     fn into_pin(self) -> Pin<Self> {
         Pin::new(self)
     }
 }
 
-// @NOTE: THIS *CLONES* IF THERE ARE OTHER ARC OR WEAK POINTERS TO THE T (https://doc.rust-lang.org/nightly/std/rc/struct.Rc.html#method.make_mut)
-impl <'a, 'b: 'a, T: Unpin + Clone + ?Sized> IntoPin<&'a mut T> for &'b mut Rc<T> {
+// @NOTE: THIS *CLONES* IF THERE ARE OTHER ARC OR WEAK POINTERS TO THE T
+// (https://doc.rust-lang.org/nightly/std/rc/struct.Rc.html#method.make_mut)
+impl<'a, 'b: 'a, T: Unpin + Clone + ?Sized> IntoPin<&'a mut T> for &'b mut Rc<T> {
     #[inline]
     fn into_pin(self) -> Pin<&'a mut T> {
         Pin::new(Rc::make_mut(self))
     }
 }
 
-// @NOTE: THIS *CLONES* IF THERE ARE OTHER ARC OR WEAK POINTERS TO THE T (https://doc.rust-lang.org/nightly/std/rc/struct.Rc.html#method.make_mut)
-impl <'a, 'b: 'a, T: Unpin + Clone + ?Sized> IntoPin<&'a T> for &'b mut Rc<T> {
+// @NOTE: THIS *CLONES* IF THERE ARE OTHER ARC OR WEAK POINTERS TO THE T
+// (https://doc.rust-lang.org/nightly/std/rc/struct.Rc.html#method.make_mut)
+impl<'a, 'b: 'a, T: Unpin + Clone + ?Sized> IntoPin<&'a T> for &'b mut Rc<T> {
     #[inline]
     fn into_pin(self) -> Pin<&'a T> {
         Pin::new(Rc::make_mut(self))
     }
 }
 
-impl <'a, 'b: 'a, T: Unpin + ?Sized> IntoPin<&'a T> for &'b Rc<T> {
+impl<'a, 'b: 'a, T: Unpin + ?Sized> IntoPin<&'a T> for &'b Rc<T> {
     #[inline]
     fn into_pin(self) -> Pin<&'a T> {
         Pin::new(self.as_ref())
@@ -283,28 +320,28 @@ impl <'a, 'b: 'a, T: Unpin + ?Sized> IntoPin<&'a T> for &'b Rc<T> {
 ///////////////////////////////////////////////
 // REFCELL IMPL
 ///////////////////////////////////////////////
-impl <'b, 'a: 'b, T: Unpin + ?Sized> IntoPin<Ref<'b, T>> for &'a RefCell<T> {
+impl<'b, 'a: 'b, T: Unpin + ?Sized> IntoPin<Ref<'b, T>> for &'a RefCell<T> {
     #[inline]
     fn into_pin(self) -> Pin<Ref<'b, T>> {
         Pin::new(self.borrow())
     }
 }
 
-impl <'b, 'a: 'b, T: Unpin + ?Sized> IntoPin<Ref<'b, T>> for &'a mut RefCell<T> {
+impl<'b, 'a: 'b, T: Unpin + ?Sized> IntoPin<Ref<'b, T>> for &'a mut RefCell<T> {
     #[inline]
     fn into_pin(self) -> Pin<Ref<'b, T>> {
         Pin::new(self.borrow())
     }
 }
 
-impl <'b, 'a: 'b, T: Unpin + ?Sized> IntoPin<RefMut<'b, T>> for &'a RefCell<T> {
+impl<'b, 'a: 'b, T: Unpin + ?Sized> IntoPin<RefMut<'b, T>> for &'a RefCell<T> {
     #[inline]
     fn into_pin(self) -> Pin<RefMut<'b, T>> {
         Pin::new(self.borrow_mut())
     }
 }
 
-impl <'b, 'a: 'b, T: Unpin + ?Sized> IntoPin<RefMut<'b, T>> for &'a mut RefCell<T> {
+impl<'b, 'a: 'b, T: Unpin + ?Sized> IntoPin<RefMut<'b, T>> for &'a mut RefCell<T> {
     #[inline]
     fn into_pin(self) -> Pin<RefMut<'b, T>> {
         Pin::new(self.borrow_mut())
@@ -316,22 +353,21 @@ impl <'b, 'a: 'b, T: Unpin + ?Sized> IntoPin<RefMut<'b, T>> for &'a mut RefCell<
 ///////////////////////////////////////////////
 // REF IMPL
 ///////////////////////////////////////////////
-impl <'a, T: Unpin + ?Sized> IntoPin<Ref<'a, T>> for Ref<'a, T> {
-    
+impl<'a, T: Unpin + ?Sized> IntoPin<Ref<'a, T>> for Ref<'a, T> {
     #[inline]
     fn into_pin(self) -> Pin<Ref<'a, T>> {
         Pin::new(self)
     }
 }
 
-impl <'b, 'a: 'b, 'c, T: Unpin + ?Sized> IntoPin<&'b T> for &'a Ref<'c, T> {
+impl<'b, 'a: 'b, 'c, T: Unpin + ?Sized> IntoPin<&'b T> for &'a Ref<'c, T> {
     #[inline]
     fn into_pin(self) -> Pin<&'b T> {
         Pin::new(self)
     }
 }
 
-impl <'b, 'a: 'b, 'c, T: Unpin + ?Sized> IntoPin<&'b T> for &'a mut Ref<'c, T> {
+impl<'b, 'a: 'b, 'c, T: Unpin + ?Sized> IntoPin<&'b T> for &'a mut Ref<'c, T> {
     #[inline]
     fn into_pin(self) -> Pin<&'b T> {
         Pin::new(self)
@@ -343,29 +379,28 @@ impl <'b, 'a: 'b, 'c, T: Unpin + ?Sized> IntoPin<&'b T> for &'a mut Ref<'c, T> {
 ///////////////////////////////////////////////
 // REFMUT IMPL
 ///////////////////////////////////////////////
-impl <'a, T: Unpin + ?Sized> IntoPin<RefMut<'a, T>> for RefMut<'a, T> {
-    
+impl<'a, T: Unpin + ?Sized> IntoPin<RefMut<'a, T>> for RefMut<'a, T> {
     #[inline]
     fn into_pin(self) -> Pin<RefMut<'a, T>> {
         Pin::new(self)
     }
 }
 
-impl <'b, 'a: 'b, 'c, T: Unpin + ?Sized> IntoPin<&'b T> for &'a RefMut<'c, T> {
+impl<'b, 'a: 'b, 'c, T: Unpin + ?Sized> IntoPin<&'b T> for &'a RefMut<'c, T> {
     #[inline]
     fn into_pin(self) -> Pin<&'b T> {
         Pin::new(self)
     }
 }
 
-impl <'b, 'a: 'b, 'c, T: Unpin + ?Sized> IntoPin<&'b T> for &'a mut RefMut<'c, T> {
+impl<'b, 'a: 'b, 'c, T: Unpin + ?Sized> IntoPin<&'b T> for &'a mut RefMut<'c, T> {
     #[inline]
     fn into_pin(self) -> Pin<&'b T> {
         Pin::new(self)
     }
 }
 
-impl <'b, 'a: 'b, 'c, T: Unpin + ?Sized> IntoPin<&'b mut T> for &'a mut RefMut<'c, T> {
+impl<'b, 'a: 'b, 'c, T: Unpin + ?Sized> IntoPin<&'b mut T> for &'a mut RefMut<'c, T> {
     #[inline]
     fn into_pin(self) -> Pin<&'b mut T> {
         Pin::new(self)
@@ -377,27 +412,27 @@ impl <'b, 'a: 'b, 'c, T: Unpin + ?Sized> IntoPin<&'b mut T> for &'a mut RefMut<'
 ///////////////////////////////////////////////
 // CELL IMPL
 ///////////////////////////////////////////////
-impl <'b, 'a: 'b, T: Unpin> IntoPin<&'a T> for &'a mut Cell<T> {
+impl<'b, 'a: 'b, T: Unpin> IntoPin<&'a T> for &'a mut Cell<T> {
     fn into_pin(self) -> Pin<&'a T> {
         Pin::new(self.get_mut())
     }
 }
 
-impl <'b, 'a: 'b, T: Unpin> IntoPin<&'a mut T> for &'a mut Cell<T> {
+impl<'b, 'a: 'b, T: Unpin> IntoPin<&'a mut T> for &'a mut Cell<T> {
     fn into_pin(self) -> Pin<&'a mut T> {
         Pin::new(self.get_mut())
     }
 }
 
 #[cfg(feature = "slice_of_cells")]
-impl <'b, 'a: 'b, T: Unpin> IntoPin<&'a [Cell<T>]> for &'a Cell<[T]> {
+impl<'b, 'a: 'b, T: Unpin> IntoPin<&'a [Cell<T>]> for &'a Cell<[T]> {
     fn into_pin(self) -> Pin<&'a [Cell<T>]> {
         Pin::new(self.as_slice_of_cells())
     }
 }
 
 #[cfg(feature = "slice_of_cells")]
-impl <'b, 'a: 'b, T: Unpin> IntoPin<&'a [Cell<T>]> for &'a mut Cell<[T]> {
+impl<'b, 'a: 'b, T: Unpin> IntoPin<&'a [Cell<T>]> for &'a mut Cell<[T]> {
     fn into_pin(self) -> Pin<&'a [Cell<T>]> {
         Pin::new(self.as_slice_of_cells())
     }

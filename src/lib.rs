@@ -3,7 +3,7 @@
 //! This crate provides an `IntoPin` trait.
 //! `IntoPin` can be used to wrap any type in a [`Pin`],
 //! but is powerfull in creating  coerced, pinned references.
-//! 
+//!
 //! [`Pin`]: https://doc.rust-lang.org/nightly/std/pin/struct.Pin.html
 
 #[cfg(feature = "pinned")]

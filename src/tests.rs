@@ -1,5 +1,5 @@
 use std::pin::Pin;
- 
+
 #[test]
 fn box_into_pin() {
     use super::pinned::IntoPin;
@@ -23,6 +23,8 @@ fn box_into_pin() {
     {
         let pin: Pin<&u32> = (&mut b).into_pin();
     }
+
+    let pinbox: Pin<Box<u32>> = b.into_pin();
 }
 
 #[test]
