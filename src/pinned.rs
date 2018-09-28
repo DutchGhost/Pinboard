@@ -1,9 +1,9 @@
 use std::pin::Pin;
 use std::marker::Unpin;
-use std::ops::Deref;
 use std::borrow::Cow;
-use std::sync::Arc;
 use std::rc::Rc;
+use std::sync::Arc;
+use std::collections::VecDeque;
 use std::cell::{Ref, RefCell, RefMut, Cell};
 
 /// A trait that wraps any type implementing `Unpin` into a `Pin`.
@@ -24,7 +24,7 @@ impl <T: Unpin> IntoPin<T> for Pin<T>
     }
 }
 
-impl <'b, 'a: 'b, T: Unpin> IntoPin<&'b T> for Pin<&'a mut T>
+impl <'b, 'a: 'b, T: Unpin + ?Sized> IntoPin<&'b T> for Pin<&'a mut T>
 {
     #[inline]
     fn into_pin(self) -> Pin<&'b T> {
@@ -200,7 +200,7 @@ impl <'a, 'b: 'a, T: Unpin + Clone + ?Sized> IntoPin<&'a T> for &'b mut Arc<T> {
     }
 }
 
-impl <'a, 'b: 'a, T: Unpin + Clone + ?Sized> IntoPin<&'a T> for &'b Arc<T> {
+impl <'a, 'b: 'a, T: Unpin + ?Sized> IntoPin<&'a T> for &'b Arc<T> {
     #[inline]
     fn into_pin(self) -> Pin<&'a T> {
         Pin::new(self.as_ref())
@@ -235,7 +235,7 @@ impl <'a, 'b: 'a, T: Unpin + Clone + ?Sized> IntoPin<&'a T> for &'b mut Rc<T> {
     }
 }
 
-impl <'a, 'b: 'a, T: Unpin + Clone + ?Sized> IntoPin<&'a T> for &'b Rc<T> {
+impl <'a, 'b: 'a, T: Unpin + ?Sized> IntoPin<&'a T> for &'b Rc<T> {
     #[inline]
     fn into_pin(self) -> Pin<&'a T> {
         Pin::new(self.as_ref())
