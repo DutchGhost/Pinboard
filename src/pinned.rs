@@ -299,12 +299,12 @@ impl<'a, 'b: 'a, T: Unpin + Clone + ?Sized> IntoPin<&'a mut T> for &'b mut Arc<T
     }
 }
 
-// @NOTE: THIS *CLONES* IF THERE ARE OTHER ARC OR WEAK POINTERS TO THE T
-// (https://doc.rust-lang.org/nightly/std/sync/struct.Arc.html#method.make_mut)
-impl<'a, 'b: 'a, T: Unpin + Clone + ?Sized> IntoPin<&'a T> for &'b mut Arc<T> {
+impl<'a, 'b: 'a, T: Unpin + ?Sized> IntoPin<&'a T> for &'b mut Arc<T> {
     #[inline]
     fn into_pin(self) -> Pin<&'a T> {
-        Pin::new(Arc::make_mut(self))
+        use std::borrow::Borrow;
+
+        Pin::new(<Arc<T> as Borrow<T>>::borrow(self))
     }
 }
 
@@ -327,7 +327,7 @@ impl<T: Unpin + ?Sized> IntoPin<Rc<T>> for Rc<T> {
     }
 }
 
-// @NOTE: THIS *CLONES* IF THERE ARE OTHER ARC OR WEAK POINTERS TO THE T
+// @NOTE: THIS *CLONES* IF THERE ARE OTHER RC OR WEAK POINTERS TO THE T
 // (https://doc.rust-lang.org/nightly/std/rc/struct.Rc.html#method.make_mut)
 impl<'a, 'b: 'a, T: Unpin + Clone + ?Sized> IntoPin<&'a mut T> for &'b mut Rc<T> {
     #[inline]
@@ -336,12 +336,12 @@ impl<'a, 'b: 'a, T: Unpin + Clone + ?Sized> IntoPin<&'a mut T> for &'b mut Rc<T>
     }
 }
 
-// @NOTE: THIS *CLONES* IF THERE ARE OTHER ARC OR WEAK POINTERS TO THE T
-// (https://doc.rust-lang.org/nightly/std/rc/struct.Rc.html#method.make_mut)
-impl<'a, 'b: 'a, T: Unpin + Clone + ?Sized> IntoPin<&'a T> for &'b mut Rc<T> {
+impl<'a, 'b: 'a, T: Unpin + ?Sized> IntoPin<&'a T> for &'b mut Rc<T> {
     #[inline]
     fn into_pin(self) -> Pin<&'a T> {
-        Pin::new(Rc::make_mut(self))
+        use std::borrow::Borrow;
+
+        Pin::new(<Rc<T> as Borrow<T>>::borrow(self))
     }
 }
 
