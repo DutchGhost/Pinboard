@@ -18,8 +18,7 @@
 //! let pinned_slice: Pin<&[u32]> = (&v).into_pin();
 //! ```
 //!
-//! It is also possible to accept types that implement IntoPin
-//!
+//! An example using generics:
 //! ```
 //! #![feature(pin)]
 //!
@@ -51,6 +50,8 @@
 
 #[cfg(feature = "pinned")]
 pub mod pinned;
+
+#[cfg(feature = "pinned")]
 pub use self::pinned::IntoPin;
 
 #[cfg(all(test, feature = "pinned"))]

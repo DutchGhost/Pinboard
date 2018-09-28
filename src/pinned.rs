@@ -18,8 +18,7 @@ use std::sync::Arc;
 ///
 /// let pinned_slice: Pin<&[u32]> = (&v).into_pin();
 /// ```
-///
-/// It is also possible to accept types that implement IntoPin
+/// An example using generics:
 ///
 /// ```
 /// #![feature(pin)]
