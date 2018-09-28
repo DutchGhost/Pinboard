@@ -1,6 +1,6 @@
 # pinpoint
 
-This crate provides the 'IntoPin` trait. `IntoPin` is powerfull for creating coerced, pinned references.
+This crate provides the `IntoPin` trait. `IntoPin` is powerfull for creating coerced, pinned references.
 
 ### Example
 
@@ -16,7 +16,7 @@ fn example<'a, P>(item: P)
 where
     P: IntoPin<&'a mut [u8]>
 {
-    let mut pin = item.into_pin();
+    let mut pin: Pin<&mut [u8]> = item.into_pin();
     pin.reverse();
 }
 
