@@ -73,6 +73,13 @@ impl <T: Unpin> IntoPin<Vec<T>> for Vec<T> {
     }
 }
 
+impl <T: Unpin> IntoPin<Box<[T]>> for Vec<T> {
+    #[inline]
+    fn into_pin(self) -> Pin<Box<[T]>> {
+        Pin::new(self.into_boxed_slice())
+    }
+}
+
 impl <'b, 'a: 'b, T: Unpin> IntoPin<&'b [T]> for &'a Vec<T> {
     #[inline]
     fn into_pin(self) -> Pin<&'b [T]> {
@@ -106,6 +113,20 @@ impl IntoPin<String> for String {
     }
 }
 
+impl IntoPin<Box<str>> for String {
+    #[inline]
+    fn into_pin(self) -> Pin<Box<str>> {
+        Pin::new(self.into_boxed_str())
+    }
+}
+
+impl IntoPin<Vec<u8>> for String {
+    #[inline]
+    fn into_pin(self) -> Pin<Vec<u8>> {
+        Pin::new(self.into_bytes())
+    }
+}
+
 impl <'b, 'a: 'b> IntoPin<&'b str> for &'a String {
     #[inline]
     fn into_pin(self) -> Pin<&'b str> {
@@ -119,6 +140,21 @@ impl <'b, 'a: 'b> IntoPin<&'b str> for &'a mut String {
         Pin::new(self)
     }
 }
+
+impl <'b, 'a: 'b> IntoPin<&'b mut str> for &'a mut String {
+    #[inline]
+    fn into_pin(self) -> Pin<&'b mut str> {
+        Pin::new(self)
+    }
+}
+
+impl <'b, 'a: 'b> IntoPin<&'b [u8]> for &'a String {
+    #[inline]
+    fn into_pin(self) -> Pin<&'b [u8]> {
+        Pin::new(self.as_ref())
+    }
+}
+
 ///////////////////////////////////////////////
 ///////////////////////////////////////////////
 
@@ -353,12 +389,14 @@ impl <'b, 'a: 'b, T: Unpin> IntoPin<&'a mut T> for &'a mut Cell<T> {
     }
 }
 
+#[cfg(feature = "slice_of_cells")]
 impl <'b, 'a: 'b, T: Unpin> IntoPin<&'a [Cell<T>]> for &'a Cell<[T]> {
     fn into_pin(self) -> Pin<&'a [Cell<T>]> {
         Pin::new(self.as_slice_of_cells())
     }
 }
 
+#[cfg(feature = "slice_of_cells")]
 impl <'b, 'a: 'b, T: Unpin> IntoPin<&'a [Cell<T>]> for &'a mut Cell<[T]> {
     fn into_pin(self) -> Pin<&'a [Cell<T>]> {
         Pin::new(self.as_slice_of_cells())
