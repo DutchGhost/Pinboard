@@ -103,30 +103,29 @@ fn pinned_ref_to_pinned_ref() {
         P: IntoPin<&'a [T]>
     {
 
-    } //<--- x goes out of scope here, if it borrows something, the borrow is dropped.
+    }
 
     let mut v = vec![1, 2, 3, 4];
 
     let mut pin: Pin<&mut [u32]> = (&mut v).into_pin();
 
     {
-        quazr(&mut pin); // <-- `pin` should only be borrowed untill the end of `quazr`
-
-        /*
-             quazr(&mut pin);
-    |               -------- first mutable borrow occurs here
-        */
+        quazr(&mut pin);
     }
 
-    {
-        quazr(&mut pin) // <-- `pin` should only be borrowed untill the end of `quazr`
-
-        /*
-            quazr(&mut pin)
-    |               ^^^^^^^^
-    |               |
-    |               second mutable borrow occurs here
-    |               borrow later used here
-        */
-    }
+    let moved = pin;
 }
+
+/*
+error[E0505]: cannot move out of `pin` because it is borrowed
+   --> src\tests.rs:116:17
+    |
+113 |         quazr(&mut pin);
+    |               -------- borrow of `pin` occurs here
+...
+116 |     let moved = pin;
+    |                 ^^^
+    |                 |
+    |                 move out of `pin` occurs here
+    |                 borrow later used here
+*/
