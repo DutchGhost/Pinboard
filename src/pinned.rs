@@ -76,7 +76,7 @@ impl<'b, 'a: 'b, T: Unpin> IntoPin<&'b T> for &'a Pin<&'b T> {
 }
 
 // Mutable reference to pin of reference into pin of reference
-impl<'b, 'a: 'b, T: Unpin> IntoPin<&'b T> for &'a mut Pin<&'b T> {
+impl<'b, 'a: 'b, T: Unpin + ?Sized> IntoPin<&'b T> for &'a mut Pin<&'b T> {
     #[inline]
     fn into_pin(self) -> Pin<&'b T> {
         use std::borrow::Borrow;
@@ -85,7 +85,7 @@ impl<'b, 'a: 'b, T: Unpin> IntoPin<&'b T> for &'a mut Pin<&'b T> {
 }
 
 // mutable reference to pin of mutable reference into pin of mutable reference
-impl<'b, 'a: 'b, T: Unpin> IntoPin<&'b mut T> for &'a mut Pin<&'b mut T> {
+impl<'b, 'a: 'b, T: Unpin + ?Sized> IntoPin<&'b mut T> for &'a mut Pin<&'b mut T> {
     #[inline]
     fn into_pin(self) -> Pin<&'b mut T> {
         use std::borrow::BorrowMut;
@@ -94,7 +94,7 @@ impl<'b, 'a: 'b, T: Unpin> IntoPin<&'b mut T> for &'a mut Pin<&'b mut T> {
 }
 
 // mutable reference to pin of mutable reference into pin of reference
-impl<'b, 'a: 'b, T: Unpin> IntoPin<&'b T> for &'a mut Pin<&'b mut T> {
+impl<'b, 'a: 'b, T: Unpin + ?Sized> IntoPin<&'b T> for &'a mut Pin<&'b mut T> {
     #[inline]
     fn into_pin(self) -> Pin<&'b T> {
         use std::ops::Deref;
@@ -102,7 +102,7 @@ impl<'b, 'a: 'b, T: Unpin> IntoPin<&'b T> for &'a mut Pin<&'b mut T> {
     }
 }
 
-impl<'b, 'a: 'b, T: Unpin> IntoPin<&'b T> for &'a Pin<&'b mut T> {
+impl<'b, 'a: 'b, T: Unpin + ?Sized> IntoPin<&'b T> for &'a Pin<&'b mut T> {
     #[inline]
     fn into_pin(self) -> Pin<&'b T> {
         use std::ops::Deref;

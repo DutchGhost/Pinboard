@@ -109,7 +109,7 @@ fn pinned_ref_to_pinned_ref() {
 
     let pin: Pin<&mut [u32]> = (&mut v).into_pin();
 
-    quazr(pin.borrow());
+    quazr(&pin);
 
-    quazr(pin);
+    quazr(&pin);
 }
