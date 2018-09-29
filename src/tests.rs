@@ -102,19 +102,31 @@ fn pinned_ref_to_pinned_ref() {
     where
         P: IntoPin<&'a [T]>
     {
-        let pin: Pin<&'a [T]> = x.into_pin();
-    }
 
-    fn test(x: &mut Pin<&mut [u32]>) {}
+    } //<--- x goes out of scope here, if it borrows something, the borrow is dropped.
+
     let mut v = vec![1, 2, 3, 4];
 
     let mut pin: Pin<&mut [u32]> = (&mut v).into_pin();
 
     {
-       // quazr(&mut pin);
+        quazr(&mut pin); // <-- `pin` should only be borrowed untill the end of `quazr`
+
+        /*
+             quazr(&mut pin);
+    |               -------- first mutable borrow occurs here
+        */
     }
 
     {
-        quazr(&mut pin)
+        quazr(&mut pin) // <-- `pin` should only be borrowed untill the end of `quazr`
+
+        /*
+            quazr(&mut pin)
+    |               ^^^^^^^^
+    |               |
+    |               second mutable borrow occurs here
+    |               borrow later used here
+        */
     }
 }
