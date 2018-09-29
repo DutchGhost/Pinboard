@@ -70,8 +70,7 @@ impl<'b, 'a: 'b, T: Unpin + ?Sized> IntoPin<&'b T> for Pin<&'a mut T> {
 impl<'b, 'a: 'b, T: Unpin> IntoPin<&'b T> for &'a Pin<&'b T> {
     #[inline]
     fn into_pin(self) -> Pin<&'b T> {
-        use std::ops::Deref;
-        Pin::new(self.deref())
+        Pin::new(self)
     }
 }
 
@@ -79,8 +78,7 @@ impl<'b, 'a: 'b, T: Unpin> IntoPin<&'b T> for &'a Pin<&'b T> {
 impl<'b, 'a: 'b, T: Unpin + ?Sized> IntoPin<&'b T> for &'a mut Pin<&'b T> {
     #[inline]
     fn into_pin(self) -> Pin<&'b T> {
-        use std::borrow::Borrow;
-        Pin::new(<Pin<&'a T> as Borrow<Pin<&'b T>>>::borrow(self))
+        Pin::new(&*self)
     }
 }
 
@@ -88,8 +86,7 @@ impl<'b, 'a: 'b, T: Unpin + ?Sized> IntoPin<&'b T> for &'a mut Pin<&'b T> {
 impl<'b, 'a: 'b, T: Unpin + ?Sized> IntoPin<&'b mut T> for &'a mut Pin<&'b mut T> {
     #[inline]
     fn into_pin(self) -> Pin<&'b mut T> {
-        use std::borrow::BorrowMut;
-        Pin::new(<Pin<&'a mut T> as BorrowMut<Pin<&'b mut T>>>::borrow_mut(self))
+        Pin::new(&mut *self)
     }
 }
 
@@ -97,8 +94,7 @@ impl<'b, 'a: 'b, T: Unpin + ?Sized> IntoPin<&'b mut T> for &'a mut Pin<&'b mut T
 impl<'b, 'a: 'b, T: Unpin + ?Sized> IntoPin<&'b T> for &'a mut Pin<&'b mut T> {
     #[inline]
     fn into_pin(self) -> Pin<&'b T> {
-        use std::ops::Deref;
-        Pin::new(<Pin<&'a mut T> as Deref>::deref(self))
+        Pin::new(&*self)
     }
 }
 
@@ -285,8 +281,8 @@ impl<'b, 'a: 'b, 'c, T: Clone + Unpin + ?Sized> IntoPin<&'b T> for &'a Cow<'c, T
 impl<'b, 'a: 'b, 'c, T: Clone + Unpin + ?Sized> IntoPin<&'b T> for &'a mut Cow<'c, T> {
     #[inline]
     fn into_pin(self) -> Pin<&'b T> {
-        use std::borrow::Borrow;
-        Pin::new(<Cow<'c, T> as Borrow<T>>::borrow(self))
+
+        Pin::new(&*self)
     }
 }
 
@@ -340,9 +336,7 @@ impl<'a, 'b: 'a, T: Unpin + Clone + ?Sized> IntoPin<&'a mut T> for &'b mut Arc<T
 impl<'a, 'b: 'a, T: Unpin + ?Sized> IntoPin<&'a T> for &'b mut Arc<T> {
     #[inline]
     fn into_pin(self) -> Pin<&'a T> {
-        use std::borrow::Borrow;
-
-        Pin::new(<Arc<T> as Borrow<T>>::borrow(self))
+        Pin::new(&*self)
     }
 }
 
@@ -377,9 +371,7 @@ impl<'a, 'b: 'a, T: Unpin + Clone + ?Sized> IntoPin<&'a mut T> for &'b mut Rc<T>
 impl<'a, 'b: 'a, T: Unpin + ?Sized> IntoPin<&'a T> for &'b mut Rc<T> {
     #[inline]
     fn into_pin(self) -> Pin<&'a T> {
-        use std::borrow::Borrow;
-
-        Pin::new(<Rc<T> as Borrow<T>>::borrow(self))
+        Pin::new(&*self)
     }
 }
 

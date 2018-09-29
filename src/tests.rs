@@ -97,24 +97,24 @@ fn pin_into_pin() {
 #[test]
 fn pinned_ref_to_pinned_ref() {
     use super::pinned::IntoPin;
-    use std::borrow::BorrowMut;
-    use std::borrow::Borrow;
-    
-    fn quazr<'a, P, T: 'a>(x: P)
+     
+    fn quazr<'a, P: 'a, T: 'a>(x: P)
     where
         P: IntoPin<&'a [T]>
     {
         let pin: Pin<&'a [T]> = x.into_pin();
     }
 
+    fn test(x: &mut Pin<&mut [u32]>) {}
     let mut v = vec![1, 2, 3, 4];
 
     let mut pin: Pin<&mut [u32]> = (&mut v).into_pin();
 
     {
-        quazr(<&mut Pin<&mut [u32]> as IntoPin<&[u32]>>::into_pin(&mut pin));
+       // quazr(&mut pin);
     }
+
     {
-        quazr(<&mut Pin<&mut [u32]> as IntoPin<&[u32]>>::into_pin(&mut pin));
+        quazr(&mut pin)
     }
 }
