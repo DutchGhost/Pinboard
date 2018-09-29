@@ -52,6 +52,7 @@ pub trait IntoPin<T: Unpin> {
 ///////////////////////////////////////////////
 // Pin<T> IMPL
 ///////////////////////////////////////////////
+// Also covers Pin<&'a T> to Pin<&'b T> where 'a: 'b
 impl<T: Unpin> IntoPin<T> for Pin<T> {
     #[inline]
     fn into_pin(self) -> Self {
@@ -65,6 +66,50 @@ impl<'b, 'a: 'b, T: Unpin + ?Sized> IntoPin<&'b T> for Pin<&'a mut T> {
         Pin::into_ref(self)
     }
 }
+
+impl<'b, 'a: 'b, T: Unpin> IntoPin<&'b T> for &'a Pin<&'b T> {
+    #[inline]
+    fn into_pin(self) -> Pin<&'b T> {
+        use std::ops::Deref;
+        Pin::new(self.deref())
+    }
+}
+
+// Mutable reference to pin of reference into pin of reference
+impl<'b, 'a: 'b, T: Unpin> IntoPin<&'b T> for &'a mut Pin<&'b T> {
+    #[inline]
+    fn into_pin(self) -> Pin<&'b T> {
+        use std::borrow::Borrow;
+        Pin::new(<Pin<&'a T> as Borrow<Pin<&'b T>>>::borrow(self))
+    }
+}
+
+// mutable reference to pin of mutable reference into pin of mutable reference
+impl<'b, 'a: 'b, T: Unpin> IntoPin<&'b mut T> for &'a mut Pin<&'b mut T> {
+    #[inline]
+    fn into_pin(self) -> Pin<&'b mut T> {
+        use std::borrow::BorrowMut;
+        Pin::new(<Pin<&'a mut T> as BorrowMut<Pin<&'b mut T>>>::borrow_mut(self))
+    }
+}
+
+// mutable reference to pin of mutable reference into pin of reference
+impl<'b, 'a: 'b, T: Unpin> IntoPin<&'b T> for &'a mut Pin<&'b mut T> {
+    #[inline]
+    fn into_pin(self) -> Pin<&'b T> {
+        use std::ops::Deref;
+        Pin::new(<Pin<&'a mut T> as Deref>::deref(self))
+    }
+}
+
+impl<'b, 'a: 'b, T: Unpin> IntoPin<&'b T> for &'a Pin<&'b mut T> {
+    #[inline]
+    fn into_pin(self) -> Pin<&'b T> {
+        use std::ops::Deref;
+        Pin::new(self)
+    }
+}
+
 ///////////////////////////////////////////////
 ///////////////////////////////////////////////
 
