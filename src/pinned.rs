@@ -102,14 +102,13 @@ impl<'b, 'a: 'b, T: Unpin + ?Sized> IntoPin<&'b T> for &'a mut Pin<&'b mut T> {
     }
 }
 
+// reference to pin of mutable reference into pin of reference
 impl<'b, 'a: 'b, T: Unpin + ?Sized> IntoPin<&'b T> for &'a Pin<&'b mut T> {
     #[inline]
     fn into_pin(self) -> Pin<&'b T> {
-        use std::ops::Deref;
         Pin::new(self)
     }
 }
-
 ///////////////////////////////////////////////
 ///////////////////////////////////////////////
 

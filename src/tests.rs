@@ -107,9 +107,12 @@ fn pinned_ref_to_pinned_ref() {
 
     let mut v = vec![1, 2, 3, 4];
 
-    let pin: Pin<&mut [u32]> = (&mut v).into_pin();
+    let mut pin: Pin<&mut [u32]> = (&mut v).into_pin();
 
-    quazr(&pin);
-
-    quazr(&pin);
+    {
+        quazr(&mut pin);
+    }
+    {
+        quazr(&mut pin);
+    }
 }
