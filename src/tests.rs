@@ -103,8 +103,7 @@ fn pinned_ref_to_pinned_ref() {
         P: IntoPin<&'a mut [T]>
     {
 
-    } //<--- x goes out of scope here, if it borrows something, the borrow is dropped.
-
+    }
     let mut v = vec![1, 2, 3, 4];
 
     let mut pin: Pin<&mut [u32]> = (&mut v).into_pin();
@@ -112,4 +111,71 @@ fn pinned_ref_to_pinned_ref() {
     quazr(&mut pin);
     quazr(&mut pin);
     quazr(&mut pin);
+}
+
+#[test]
+fn variants() {
+    use super::pinned::IntoPin;
+  
+    fn to_ref<'a, P, T: 'a>(x: P)
+    where
+        P: IntoPin<&'a T>
+    {
+
+    }
+
+    fn to_mut<'a, P, T: 'a>(x: P)
+    where
+        P: IntoPin<&'a mut T>
+    {
+
+    }
+
+    let mut n = 0;
+    // PIN<&T> TO PIN<&T>
+    let pin: Pin<&u32> = (&n).into_pin();
+    to_ref::<_, u32>(pin);
+
+    // PIN<&MUT T> TO PIN<&T>
+    let pin: Pin<&mut u32> = (&mut n).into_pin();
+    to_ref::<_, u32>(pin);
+
+    // &PIN<&T> TO PIN<&T>
+    let pin: Pin<&u32> = (&n).into_pin();
+    let pinref: &Pin<&u32> = &pin;
+    to_ref::<_, u32>(pinref);
+
+    // &PIN<&MUT T> TO PIN<&T>
+    let mut pin: Pin<&mut u32> = (&mut n).into_pin();
+    let pinref: &Pin<&mut u32> = &pin;
+    to_ref::<_, u32>(pinref);
+
+    // &MUT PIN<&T> TO PIN<&T>
+    let mut pin: Pin<&u32> = (&n).into_pin();
+    let pinref: &mut Pin<&u32> = &mut pin;
+    to_ref::<_, u32>(pinref);
+
+    // &MUT PIN<&MUT> TO PIN<&T>
+    let mut pin: Pin<&mut u32> = (&mut n).into_pin();
+    let pinref: &mut Pin<&mut u32> = &mut pin;
+    to_ref::<_, u32>(pinref);
+
+    // PIN<&MUT T> TO PIN<&MUT T>
+    let pin: Pin<&mut u32> = (&mut n).into_pin();
+    to_mut::<_, u32>(pin);
+
+    // &MUT PIN<&MUT T> TO PIN<&MUT T>
+    let mut pin: Pin<&mut u32> = (&mut n).into_pin();
+    let pinref: &mut Pin<&mut u32> = &mut pin;
+    to_mut::<_, u32>(pinref);
+
+    let mut p = Pin::new(Box::new(n));
+    // &PIN<T> TO PIN<&T>
+    to_ref(&p);
+
+    // &MUT PIN<T> TO PIN<&T>
+    to_ref(&mut p);
+
+    // &MUT PIN<T> TO PIN<&MUT T>
+    to_mut(&mut p);
 }
