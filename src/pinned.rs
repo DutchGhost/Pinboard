@@ -390,30 +390,30 @@ impl<'a, T: Unpin + ?Sized> IntoPin<&'a T> for &'a Rc<T> {
 ///////////////////////////////////////////////
 // REFCELL IMPL
 ///////////////////////////////////////////////
-impl<'b, 'a: 'b, T: Unpin + ?Sized> IntoPin<Ref<'b, T>> for &'a RefCell<T> {
+impl<'a, T: Unpin + ?Sized> IntoPin<Ref<'a, T>> for &'a RefCell<T> {
     #[inline]
-    fn into_pin(self) -> Pin<Ref<'b, T>> {
+    fn into_pin(self) -> Pin<Ref<'a, T>> {
         Pin::new(self.borrow())
     }
 }
 
-impl<'b, 'a: 'b, T: Unpin + ?Sized> IntoPin<Ref<'b, T>> for &'a mut RefCell<T> {
+impl<'a, T: Unpin + ?Sized> IntoPin<Ref<'a, T>> for &'a mut RefCell<T> {
     #[inline]
-    fn into_pin(self) -> Pin<Ref<'b, T>> {
+    fn into_pin(self) -> Pin<Ref<'a, T>> {
         Pin::new(self.borrow())
     }
 }
 
-impl<'b, 'a: 'b, T: Unpin + ?Sized> IntoPin<RefMut<'b, T>> for &'a RefCell<T> {
+impl<'a, T: Unpin + ?Sized> IntoPin<RefMut<'a, T>> for &'a RefCell<T> {
     #[inline]
-    fn into_pin(self) -> Pin<RefMut<'b, T>> {
+    fn into_pin(self) -> Pin<RefMut<'a, T>> {
         Pin::new(self.borrow_mut())
     }
 }
 
-impl<'b, 'a: 'b, T: Unpin + ?Sized> IntoPin<RefMut<'b, T>> for &'a mut RefCell<T> {
+impl<'a, T: Unpin + ?Sized> IntoPin<RefMut<'a, T>> for &'a mut RefCell<T> {
     #[inline]
-    fn into_pin(self) -> Pin<RefMut<'b, T>> {
+    fn into_pin(self) -> Pin<RefMut<'a, T>> {
         Pin::new(self.borrow_mut())
     }
 }
@@ -430,16 +430,16 @@ impl<'a, T: Unpin + ?Sized> IntoPin<Ref<'a, T>> for Ref<'a, T> {
     }
 }
 
-impl<'b, 'a: 'b, 'c, T: Unpin + ?Sized> IntoPin<&'b T> for &'a Ref<'c, T> {
+impl<'short, 'long, T: Unpin + ?Sized> IntoPin<&'short T> for &'short Ref<'long, T> {
     #[inline]
-    fn into_pin(self) -> Pin<&'b T> {
+    fn into_pin(self) -> Pin<&'short T> {
         Pin::new(self)
     }
 }
 
-impl<'b, 'a: 'b, 'c, T: Unpin + ?Sized> IntoPin<&'b T> for &'a mut Ref<'c, T> {
+impl<'short, 'long, T: Unpin + ?Sized> IntoPin<&'short T> for &'short mut Ref<'long, T> {
     #[inline]
-    fn into_pin(self) -> Pin<&'b T> {
+    fn into_pin(self) -> Pin<&'short T> {
         Pin::new(self)
     }
 }
@@ -456,23 +456,23 @@ impl<'a, T: Unpin + ?Sized> IntoPin<RefMut<'a, T>> for RefMut<'a, T> {
     }
 }
 
-impl<'b, 'a: 'b, 'c, T: Unpin + ?Sized> IntoPin<&'b T> for &'a RefMut<'c, T> {
+impl<'short, 'long, T: Unpin + ?Sized> IntoPin<&'short T> for &'short RefMut<'long, T> {
     #[inline]
-    fn into_pin(self) -> Pin<&'b T> {
+    fn into_pin(self) -> Pin<&'short T> {
         Pin::new(self)
     }
 }
 
-impl<'b, 'a: 'b, 'c, T: Unpin + ?Sized> IntoPin<&'b T> for &'a mut RefMut<'c, T> {
+impl<'short, 'long, T: Unpin + ?Sized> IntoPin<&'short T> for &'short mut RefMut<'long, T> {
     #[inline]
-    fn into_pin(self) -> Pin<&'b T> {
+    fn into_pin(self) -> Pin<&'short T> {
         Pin::new(self)
     }
 }
 
-impl<'b, 'a: 'b, 'c, T: Unpin + ?Sized> IntoPin<&'b mut T> for &'a mut RefMut<'c, T> {
+impl<'short, 'long, T: Unpin + ?Sized> IntoPin<&'short mut T> for &'short mut RefMut<'long, T> {
     #[inline]
-    fn into_pin(self) -> Pin<&'b mut T> {
+    fn into_pin(self) -> Pin<&'short mut T> {
         Pin::new(self)
     }
 }
@@ -482,27 +482,27 @@ impl<'b, 'a: 'b, 'c, T: Unpin + ?Sized> IntoPin<&'b mut T> for &'a mut RefMut<'c
 ///////////////////////////////////////////////
 // CELL IMPL
 ///////////////////////////////////////////////
-impl<'b, 'a: 'b, T: Unpin> IntoPin<&'a T> for &'a mut Cell<T> {
+impl<'a, T: Unpin> IntoPin<&'a T> for &'a mut Cell<T> {
     fn into_pin(self) -> Pin<&'a T> {
         Pin::new(self.get_mut())
     }
 }
 
-impl<'b, 'a: 'b, T: Unpin> IntoPin<&'a mut T> for &'a mut Cell<T> {
+impl<'a, T: Unpin> IntoPin<&'a mut T> for &'a mut Cell<T> {
     fn into_pin(self) -> Pin<&'a mut T> {
         Pin::new(self.get_mut())
     }
 }
 
 #[cfg(feature = "slice_of_cells")]
-impl<'b, 'a: 'b, T: Unpin> IntoPin<&'a [Cell<T>]> for &'a Cell<[T]> {
+impl<'a, T: Unpin> IntoPin<&'a [Cell<T>]> for &'a Cell<[T]> {
     fn into_pin(self) -> Pin<&'a [Cell<T>]> {
         Pin::new(self.as_slice_of_cells())
     }
 }
 
 #[cfg(feature = "slice_of_cells")]
-impl<'b, 'a: 'b, T: Unpin> IntoPin<&'a [Cell<T>]> for &'a mut Cell<[T]> {
+impl<'a, T: Unpin> IntoPin<&'a [Cell<T>]> for &'a mut Cell<[T]> {
     fn into_pin(self) -> Pin<&'a [Cell<T>]> {
         Pin::new(self.as_slice_of_cells())
     }
