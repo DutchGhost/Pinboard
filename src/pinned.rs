@@ -70,13 +70,6 @@ impl<'a, T: Unpin + ?Sized> IntoPin<&'a T> for Pin<&'a mut T> {
     }
 }
 
-// impl <'a, T: Unpin + ?Sized> IntoPin<&'a T> for &'a Pin<&'a T> {
-//     #[inline]
-//     fn into_pin(self) -> Pin<&'a T> {
-//         self
-//     }
-// }
-
 impl<'a, T: Unpin> IntoPin<&'a T> for &'a Pin<&'a T> {
     #[inline]
     fn into_pin(self) -> Pin<&'a T> {
@@ -291,7 +284,6 @@ impl<'short, 'long, T: Clone + Unpin + ?Sized> IntoPin<&'short T> for &'short Co
 impl<'short, 'long, T: Clone + Unpin + ?Sized> IntoPin<&'short T> for &'short mut Cow<'long, T> {
     #[inline]
     fn into_pin(self) -> Pin<&'short T> {
-
         Pin::new(&*self)
     }
 }
@@ -306,17 +298,17 @@ impl<'a> IntoPin<Cow<'a, [u8]>> for Cow<'a, str> {
     }
 }
 
-impl<'a, 'b> IntoPin<&'a [u8]> for &'a Cow<'b, str> {
+impl<'short, 'long> IntoPin<&'short [u8]> for &'short Cow<'long, str> {
     #[inline]
-    fn into_pin(self) -> Pin<&'a [u8]> {
+    fn into_pin(self) -> Pin<&'short [u8]> {
         // Asref into &str, then Asref into &[u8].
         Pin::new(self.as_ref().as_ref())
     }
 }
 
-impl<'a, 'b> IntoPin<&'a [u8]> for &'a mut Cow<'b, str> {
+impl<'short, 'long> IntoPin<&'short [u8]> for &'short mut Cow<'long, str> {
     #[inline]
-    fn into_pin(self) -> Pin<&'a [u8]> {
+    fn into_pin(self) -> Pin<&'short [u8]> {
         // Asref into &str, then Asref into &[u8].
         Pin::new((&*self).as_ref().as_ref())
     }
@@ -356,6 +348,27 @@ impl<'a, T: Unpin + ?Sized> IntoPin<&'a T> for &'a Arc<T> {
         Pin::new(self.as_ref())
     }
 }
+
+impl<'short, 'long, T: Unpin + ?Sized> IntoPin<&'short T> for &'short Arc<&'long T> {
+    #[inline]
+    fn into_pin(self) -> Pin<&'short T> {
+        Pin::new(self.as_ref())
+    }
+}
+
+impl<'short, 'long, T: Unpin + ?Sized> IntoPin<&'short T> for &'short Arc<&'long mut T> {
+    #[inline]
+    fn into_pin(self) -> Pin<&'short T> {
+        Pin::new(self.as_ref())
+    }
+}
+
+impl<'short, 'long, T: Unpin + ?Sized> IntoPin<&'short T> for &'short mut Arc<&'long mut T> {
+    #[inline]
+    fn into_pin(self) -> Pin<&'short T> {
+        Pin::new(&**self)
+    }
+}
 ///////////////////////////////////////////////
 ///////////////////////////////////////////////
 
@@ -388,6 +401,27 @@ impl<'a, T: Unpin + ?Sized> IntoPin<&'a T> for &'a mut Rc<T> {
 impl<'a, T: Unpin + ?Sized> IntoPin<&'a T> for &'a Rc<T> {
     #[inline]
     fn into_pin(self) -> Pin<&'a T> {
+        Pin::new(self.as_ref())
+    }
+}
+
+impl<'a, T: Unpin + ?Sized> IntoPin<&'a T> for Rc<&'a T> {
+    #[inline]
+    fn into_pin(self) -> Pin<&'a T> {
+        Pin::new(self.as_ref())
+    }
+}
+
+impl<'short, 'long, T: Unpin + ?Sized> IntoPin<&'short T> for &'short Rc<&'long T> {
+    #[inline]
+    fn into_pin(self) -> Pin<&'short T> {
+        Pin::new(self.as_ref())
+    }
+}
+
+impl<'short, 'long, T: Unpin + ?Sized> IntoPin<&'short T> for &'short mut Rc<&'long T> {
+    #[inline]
+    fn into_pin(self) -> Pin<&'short T> {
         Pin::new(self.as_ref())
     }
 }
@@ -501,6 +535,18 @@ impl<'a, T: Unpin> IntoPin<&'a mut T> for &'a mut Cell<T> {
     }
 }
 
+impl<'short, 'long, T: Unpin> IntoPin<&'short T> for &'short mut Cell<&'long T> {
+    fn into_pin(self) -> Pin<&'short T> {
+        Pin::new(self.get_mut())
+    }
+}
+
+impl<'short, 'long, T: Unpin> IntoPin<&'short mut T> for &'short mut Cell<&'long mut T> {
+    fn into_pin(self) -> Pin<&'short mut T> {
+        Pin::new(self.get_mut())
+    }
+}
+
 #[cfg(feature = "slice_of_cells")]
 impl<'a, T: Unpin> IntoPin<&'a [Cell<T>]> for &'a Cell<[T]> {
     fn into_pin(self) -> Pin<&'a [Cell<T>]> {
@@ -516,3 +562,37 @@ impl<'a, T: Unpin> IntoPin<&'a [Cell<T>]> for &'a mut Cell<[T]> {
 }
 ///////////////////////////////////////////////
 ///////////////////////////////////////////////
+
+macro_rules! impl_array {
+    ($size:expr $(,$sizes:expr)*) => (
+        impl <'a, T: Unpin> IntoPin<&'a [T]> for &'a [T; $size] {
+            #[inline]
+            fn into_pin(self) -> Pin<&'a [T]> {
+                Pin::new(self)
+            }
+        }
+
+        impl <'a, T: Unpin> IntoPin<&'a [T]> for &'a mut [T; $size] {
+            #[inline]
+            fn into_pin(self) -> Pin<&'a [T]> {
+                Pin::new(self)
+            }
+        }
+
+        impl <'a, T: Unpin> IntoPin<&'a mut [T]> for &'a mut [T; $size] {
+            #[inline]
+            fn into_pin(self) -> Pin<&'a mut [T]> {
+                Pin::new(self)
+            }
+        }
+
+        impl_array!($($sizes),*);
+    );
+
+    () => {}
+}
+
+impl_array!(
+    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25,
+    26, 27, 28, 29, 30, 31, 32
+);

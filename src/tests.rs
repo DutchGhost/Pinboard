@@ -97,17 +97,17 @@ fn pin_into_pin() {
 #[test]
 fn pinned_ref_to_pinned_ref() {
     use super::pinned::IntoPin;
-     
+
     fn quazr<'a, P: 'a, T: 'a>(x: P)
     where
-        P: IntoPin<&'a mut [T]>
+        P: IntoPin<&'a mut [T]>,
     {
 
     }
     let mut v = vec![1, 2, 3, 4];
 
     let mut pin: Pin<&mut [u32]> = (&mut v).into_pin();
-    
+
     quazr(&mut pin);
     quazr(&mut pin);
     quazr(&mut pin);
@@ -116,17 +116,17 @@ fn pinned_ref_to_pinned_ref() {
 #[test]
 fn variants() {
     use super::pinned::IntoPin;
-  
+
     fn to_ref<'a, P, T: 'a>(x: P)
     where
-        P: IntoPin<&'a T>
+        P: IntoPin<&'a T>,
     {
 
     }
 
     fn to_mut<'a, P, T: 'a>(x: P)
     where
-        P: IntoPin<&'a mut T>
+        P: IntoPin<&'a mut T>,
     {
 
     }
