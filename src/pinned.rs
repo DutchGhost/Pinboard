@@ -1,9 +1,11 @@
 use std::borrow::Cow;
-use std::cell::{Cell, Ref, RefCell, RefMut};
+use std::cell::{Cell, Ref, RefMut};
 use std::marker::Unpin;
 use std::pin::Pin;
 use std::rc::Rc;
 use std::sync::Arc;
+use std::path::{Path, PathBuf};
+use std::ffi::{OsString, OsStr};
 
 /// A trait that wraps any type implementing `Unpin` into a `Pin`.
 /// # Examples
@@ -232,6 +234,187 @@ impl<'a> IntoPin<&'a [u8]> for &'a String {
 ///////////////////////////////////////////////
 
 ///////////////////////////////////////////////
+// STR IMPL
+///////////////////////////////////////////////
+impl <'a> IntoPin<&'a [u8]> for &'a str {
+    fn into_pin(self) -> Pin<&'a [u8]> {
+        Pin::new(self.as_bytes())
+    }
+}
+
+impl <'a> IntoPin<&'a [u8]> for &'a mut str {
+    fn into_pin(self) -> Pin<&'a [u8]> {
+        Pin::new(self.as_bytes())
+    }
+}
+
+impl <'a> IntoPin<&'a OsStr> for &'a str {
+    fn into_pin(self) -> Pin<&'a OsStr> {
+        Pin::new(self.as_ref())
+    }
+}
+
+impl <'a> IntoPin<&'a OsStr> for &'a mut str {
+    fn into_pin(self) -> Pin<&'a OsStr> {
+        Pin::new((&*self).as_ref())
+    }
+}
+
+impl <'a> IntoPin<&'a Path> for &'a str {
+    fn into_pin(self) -> Pin<&'a Path> {
+        Pin::new(self.as_ref())
+    }
+}
+
+impl <'a> IntoPin<&'a Path> for &'a mut str {
+    fn into_pin(self) -> Pin<&'a Path> {
+        Pin::new((&*self).as_ref())
+    }
+}
+///////////////////////////////////////////////
+///////////////////////////////////////////////
+
+///////////////////////////////////////////////
+// PATHBUF IMPL
+///////////////////////////////////////////////
+impl IntoPin<PathBuf> for PathBuf {
+    #[inline]
+    fn into_pin(self) -> Pin<Self> {
+        Pin::new(self)
+    }
+}
+
+impl IntoPin<Box<Path>> for PathBuf {
+    #[inline]
+    fn into_pin(self) -> Pin<Box<Path>> {
+        Pin::new(self.into_boxed_path())
+    }
+}
+
+impl IntoPin<OsString> for PathBuf {
+    #[inline]
+    fn into_pin(self) -> Pin<OsString> {
+        Pin::new(self.into_os_string())
+    }
+}
+
+impl <'a> IntoPin<&'a Path> for &'a PathBuf {
+    #[inline]
+    fn into_pin(self) -> Pin<&'a Path> {
+        Pin::new(self)
+    }
+}
+
+impl <'a> IntoPin<&'a Path> for &'a mut PathBuf {
+    #[inline]
+    fn into_pin(self) -> Pin<&'a Path> {
+        Pin::new(self)
+    }
+}
+
+impl <'a> IntoPin<&'a OsStr> for &'a PathBuf {
+    #[inline]
+    fn into_pin(self) -> Pin<&'a OsStr> {
+        Pin::new(self.as_os_str())
+    }
+}
+
+impl <'a> IntoPin<&'a OsStr> for &'a mut PathBuf {
+    #[inline]
+    fn into_pin(self) -> Pin<&'a OsStr> {
+        Pin::new(self.as_os_str())
+    }
+}
+///////////////////////////////////////////////
+///////////////////////////////////////////////
+
+///////////////////////////////////////////////
+// PATH IMPL
+///////////////////////////////////////////////
+impl <'a> IntoPin<&'a OsStr> for &'a Path {
+    #[inline]
+    fn into_pin(self) -> Pin<&'a OsStr> {
+        Pin::new(self.as_os_str())
+    }
+}
+
+impl <'a> IntoPin<&'a OsStr> for &'a mut Path {
+    #[inline]
+    fn into_pin(self) -> Pin<&'a OsStr> {
+        Pin::new(self.as_os_str())
+    }
+}
+///////////////////////////////////////////////
+///////////////////////////////////////////////
+
+///////////////////////////////////////////////
+// OSSTRING IMPL
+///////////////////////////////////////////////
+impl IntoPin<OsString> for OsString {
+    #[inline]
+    fn into_pin(self) -> Pin<Self> {
+        Pin::new(self)
+    }
+}
+
+impl IntoPin<Box<OsStr>> for OsString {
+    #[inline]
+    fn into_pin(self) -> Pin<Box<OsStr>> {
+        Pin::new(self.into_boxed_os_str())
+    }
+}
+
+//@NOTE: I think this does not alloc?
+impl IntoPin<PathBuf> for OsString {
+    #[inline]
+    fn into_pin(self) -> Pin<PathBuf> {
+        Pin::new(self.into())
+    }
+}
+
+impl <'a> IntoPin<&'a OsStr> for &'a OsString {
+    #[inline]
+    fn into_pin(self) -> Pin<&'a OsStr> {
+        Pin::new(self)
+    }
+}
+
+impl <'a> IntoPin<&'a OsStr> for &'a mut OsString {
+    #[inline]
+    fn into_pin(self) -> Pin<&'a OsStr> {
+        Pin::new(self)
+    }
+}
+
+impl <'a> IntoPin<&'a Path> for &'a OsString {
+    #[inline]
+    fn into_pin(self) -> Pin<&'a Path> {
+        Pin::new(self.as_ref())
+    }
+}
+
+impl <'a> IntoPin<&'a Path> for &'a mut OsString {
+    #[inline]
+    fn into_pin(self) -> Pin<&'a Path> {
+        Pin::new((&*self).as_ref())
+    }
+}
+///////////////////////////////////////////////
+///////////////////////////////////////////////
+
+///////////////////////////////////////////////
+// OSSTR IMPL
+///////////////////////////////////////////////
+impl <'a> IntoPin<&'a Path> for &'a OsStr {
+    #[inline]
+    fn into_pin(self) -> Pin<&'a Path> {
+        Pin::new(self.as_ref())
+    }
+}
+///////////////////////////////////////////////
+///////////////////////////////////////////////
+
+///////////////////////////////////////////////
 // BOX IMPL
 ///////////////////////////////////////////////
 impl<T: Unpin + ?Sized> IntoPin<Box<T>> for Box<T> {
@@ -261,6 +444,35 @@ impl<'a, T: Unpin + ?Sized> IntoPin<&'a mut T> for &'a mut Box<T> {
         Pin::new(self.as_mut())
     }
 }
+
+impl IntoPin<Box<[u8]>> for Box<str> {
+    #[inline]
+    fn into_pin(self) -> Pin<Box<[u8]>> {
+        Pin::new(str::into_boxed_bytes(self))
+    }
+}
+
+impl <T: Unpin> IntoPin<Vec<T>> for Box<[T]> {
+    #[inline]
+    fn into_pin(self) -> Pin<Vec<T>> {
+        Pin::new(<[T]>::into_vec(self))
+    }
+}
+
+impl IntoPin<OsString> for Box<OsStr> {
+    #[inline]
+    fn into_pin(self) -> Pin<OsString> {
+        Pin::new(OsStr::into_os_string(self))
+    }
+}
+
+impl IntoPin<PathBuf> for Box<Path> {
+    #[inline]
+    fn into_pin(self) -> Pin<PathBuf> {
+        Pin::new(Path::into_path_buf(self))
+    }
+}
+
 ///////////////////////////////////////////////
 ///////////////////////////////////////////////
 
@@ -326,15 +538,6 @@ impl<T: Unpin + ?Sized> IntoPin<Arc<T>> for Arc<T> {
     }
 }
 
-// @NOTE: THIS *CLONES* IF THERE ARE OTHER ARC OR WEAK POINTERS TO THE T
-// (https://doc.rust-lang.org/nightly/std/sync/struct.Arc.html#method.make_mut)
-impl<'a, T: Unpin + Clone + ?Sized> IntoPin<&'a mut T> for &'a mut Arc<T> {
-    #[inline]
-    fn into_pin(self) -> Pin<&'a mut T> {
-        Pin::new(Arc::make_mut(self))
-    }
-}
-
 impl<'a, T: Unpin + ?Sized> IntoPin<&'a T> for &'a mut Arc<T> {
     #[inline]
     fn into_pin(self) -> Pin<&'a T> {
@@ -382,15 +585,6 @@ impl<T: Unpin + ?Sized> IntoPin<Rc<T>> for Rc<T> {
     }
 }
 
-// @NOTE: THIS *CLONES* IF THERE ARE OTHER RC OR WEAK POINTERS TO THE T
-// (https://doc.rust-lang.org/nightly/std/rc/struct.Rc.html#method.make_mut)
-impl<'a, T: Unpin + Clone + ?Sized> IntoPin<&'a mut T> for &'a mut Rc<T> {
-    #[inline]
-    fn into_pin(self) -> Pin<&'a mut T> {
-        Pin::new(Rc::make_mut(self))
-    }
-}
-
 impl<'a, T: Unpin + ?Sized> IntoPin<&'a T> for &'a mut Rc<T> {
     #[inline]
     fn into_pin(self) -> Pin<&'a T> {
@@ -423,39 +617,6 @@ impl<'short, 'long, T: Unpin + ?Sized> IntoPin<&'short T> for &'short mut Rc<&'l
     #[inline]
     fn into_pin(self) -> Pin<&'short T> {
         Pin::new(self.as_ref())
-    }
-}
-///////////////////////////////////////////////
-///////////////////////////////////////////////
-
-///////////////////////////////////////////////
-// REFCELL IMPL
-///////////////////////////////////////////////
-impl<'a, T: Unpin + ?Sized> IntoPin<Ref<'a, T>> for &'a RefCell<T> {
-    #[inline]
-    fn into_pin(self) -> Pin<Ref<'a, T>> {
-        Pin::new(self.borrow())
-    }
-}
-
-impl<'a, T: Unpin + ?Sized> IntoPin<Ref<'a, T>> for &'a mut RefCell<T> {
-    #[inline]
-    fn into_pin(self) -> Pin<Ref<'a, T>> {
-        Pin::new(self.borrow())
-    }
-}
-
-impl<'a, T: Unpin + ?Sized> IntoPin<RefMut<'a, T>> for &'a RefCell<T> {
-    #[inline]
-    fn into_pin(self) -> Pin<RefMut<'a, T>> {
-        Pin::new(self.borrow_mut())
-    }
-}
-
-impl<'a, T: Unpin + ?Sized> IntoPin<RefMut<'a, T>> for &'a mut RefCell<T> {
-    #[inline]
-    fn into_pin(self) -> Pin<RefMut<'a, T>> {
-        Pin::new(self.borrow_mut())
     }
 }
 ///////////////////////////////////////////////
