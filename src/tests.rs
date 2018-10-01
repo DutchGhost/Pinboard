@@ -195,6 +195,9 @@ fn pinned_str_to_pinned_bytes() {
 
     let s = "hello";
 
-    //let pinned_str: Pin<&[u8]> = s.into_pin();
     quark::<_, &str>(&s);
+
+    let pinned_str: Pin<&[u8]> = s.into_pin();
+    quark(pinned_str);
+    
 }
