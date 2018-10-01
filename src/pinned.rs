@@ -7,7 +7,8 @@ use std::sync::Arc;
 use std::path::{Path, PathBuf};
 use std::ffi::{OsString, OsStr};
 
-/// A trait that wraps any type implementing `Unpin` into a `Pin`.
+/// Used for pinning pointer/reference types.
+/// This can also be used to coerce from one pointer type to the pinned version of the other, for example `&str` to `Pin<&[u8]>`.
 /// # Examples
 /// ```
 /// #![feature(pin)]

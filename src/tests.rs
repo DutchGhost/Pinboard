@@ -179,3 +179,22 @@ fn variants() {
     // &MUT PIN<T> TO PIN<&MUT T>
     to_mut(&mut p);
 }
+
+#[test]
+fn pinned_str_to_pinned_bytes() {
+    use super::pinned::IntoPin;
+    use std::borrow::Borrow;
+
+    fn quark<'a, R, P>(x: R)
+    where
+        R: Borrow<P>,
+        P: IntoPin<&'a [u8]>
+    {
+        x.borrow().into_pin();
+    }
+
+    let s = "hello";
+
+    //let pinned_str: Pin<&[u8]> = s.into_pin();
+    quark::<_, &str>(&s);
+}
