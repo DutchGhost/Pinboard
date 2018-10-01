@@ -72,9 +72,9 @@ impl<'a, T: Unpin + ?Sized> IntoPin<&'a T> for Pin<&'a mut T> {
     }
 }
 
-impl<'a, T: Unpin> IntoPin<&'a T> for &'a Pin<&'a T> {
+impl<'short, 'long, T: Unpin + ?Sized> IntoPin<&'short T> for &'short Pin<&'long T> {
     #[inline]
-    fn into_pin(self) -> Pin<&'a T> {
+    fn into_pin(self) -> Pin<&'short T> {
         Pin::new(self)
     }
 }
