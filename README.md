@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/DutchGhost/pinpoint.svg?branch=master)](https://travis-ci.org/DutchGhost/pinpoint)
+
 # pinpoint
 
 This crate provides the `IntoPin` trait. `IntoPin` is powerfull for creating coerced, pinned references.
