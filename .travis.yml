@@ -1,4 +1,7 @@
 language: rust
+script:
+  - cargo test --features "pinned, slice_of_cells"
+  - cargo build --features "pinned, slice_of_cells"
 sudo: false
 cache: cargo
 rust:
