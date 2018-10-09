@@ -201,3 +201,23 @@ fn pinned_str_to_pinned_bytes() {
     quark(pinned_str);
     
 }
+
+#[test]
+fn test_pinning() {
+    use super::pinned::IntoPin;
+
+    fn quarck<'a, T>(x: T)
+    where
+        T: IntoPin<&'a [u8]>
+    {
+
+    }
+
+    let mut s = "foo";
+
+    quarck(s);
+
+    let mut b: Pin<Box<[u8]>> = Box::new([1, 2, 3, 4]).into_pin();
+
+    quarck(&mut b);
+}
