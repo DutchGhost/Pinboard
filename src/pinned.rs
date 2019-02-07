@@ -1,17 +1,16 @@
 use std::borrow::Cow;
 use std::cell::{Cell, Ref, RefMut};
+use std::ffi::{OsStr, OsString};
 use std::marker::Unpin;
+use std::path::{Path, PathBuf};
 use std::pin::Pin;
 use std::rc::Rc;
 use std::sync::Arc;
-use std::path::{Path, PathBuf};
-use std::ffi::{OsString, OsStr};
 
 /// Used for pinning pointer/reference types.
 /// This can also be used to coerce from one pointer type to the pinned version of the other, for example `&str` to `Pin<&[u8]>`.
 /// # Examples
 /// ```
-/// #![feature(pin)]
 ///
 /// extern crate pinpoint;
 /// use std::pin::Pin;
@@ -24,7 +23,6 @@ use std::ffi::{OsString, OsStr};
 /// An example using generics:
 ///
 /// ```
-/// #![feature(pin)]
 ///
 /// extern crate pinpoint;
 /// use std::pin::Pin;
@@ -141,6 +139,32 @@ impl<'a, T: Unpin + ?Sized> IntoPin<&'a mut T> for &'a mut T {
 ///////////////////////////////////////////////
 
 ///////////////////////////////////////////////
+// VALUE TO SMARTPTR
+///////////////////////////////////////////////
+impl<T> IntoPin<Box<T>> for T {
+    #[inline]
+    fn into_pin(self) -> Pin<Box<T>> {
+        Box::pin(self)
+    }
+}
+
+impl<T> IntoPin<Arc<T>> for T {
+    #[inline]
+    fn into_pin(self) -> Pin<Arc<T>> {
+        Arc::pin(self)
+    }
+}
+
+impl<T> IntoPin<Rc<T>> for T {
+    #[inline]
+    fn into_pin(self) -> Pin<Rc<T>> {
+        Rc::pin(self)
+    }
+}
+///////////////////////////////////////////////
+///////////////////////////////////////////////
+
+///////////////////////////////////////////////
 // VEC IMPL
 ///////////////////////////////////////////////
 impl<T: Unpin> IntoPin<Vec<T>> for Vec<T> {
@@ -237,37 +261,37 @@ impl<'a> IntoPin<&'a [u8]> for &'a String {
 ///////////////////////////////////////////////
 // STR IMPL
 ///////////////////////////////////////////////
-impl <'a> IntoPin<&'a [u8]> for &'a str {
+impl<'a> IntoPin<&'a [u8]> for &'a str {
     fn into_pin(self) -> Pin<&'a [u8]> {
         Pin::new(self.as_bytes())
     }
 }
 
-impl <'a> IntoPin<&'a [u8]> for &'a mut str {
+impl<'a> IntoPin<&'a [u8]> for &'a mut str {
     fn into_pin(self) -> Pin<&'a [u8]> {
         Pin::new(self.as_bytes())
     }
 }
 
-impl <'a> IntoPin<&'a OsStr> for &'a str {
+impl<'a> IntoPin<&'a OsStr> for &'a str {
     fn into_pin(self) -> Pin<&'a OsStr> {
         Pin::new(self.as_ref())
     }
 }
 
-impl <'a> IntoPin<&'a OsStr> for &'a mut str {
+impl<'a> IntoPin<&'a OsStr> for &'a mut str {
     fn into_pin(self) -> Pin<&'a OsStr> {
         Pin::new((&*self).as_ref())
     }
 }
 
-impl <'a> IntoPin<&'a Path> for &'a str {
+impl<'a> IntoPin<&'a Path> for &'a str {
     fn into_pin(self) -> Pin<&'a Path> {
         Pin::new(self.as_ref())
     }
 }
 
-impl <'a> IntoPin<&'a Path> for &'a mut str {
+impl<'a> IntoPin<&'a Path> for &'a mut str {
     fn into_pin(self) -> Pin<&'a Path> {
         Pin::new((&*self).as_ref())
     }
@@ -299,28 +323,28 @@ impl IntoPin<OsString> for PathBuf {
     }
 }
 
-impl <'a> IntoPin<&'a Path> for &'a PathBuf {
+impl<'a> IntoPin<&'a Path> for &'a PathBuf {
     #[inline]
     fn into_pin(self) -> Pin<&'a Path> {
         Pin::new(self)
     }
 }
 
-impl <'a> IntoPin<&'a Path> for &'a mut PathBuf {
+impl<'a> IntoPin<&'a Path> for &'a mut PathBuf {
     #[inline]
     fn into_pin(self) -> Pin<&'a Path> {
         Pin::new(self)
     }
 }
 
-impl <'a> IntoPin<&'a OsStr> for &'a PathBuf {
+impl<'a> IntoPin<&'a OsStr> for &'a PathBuf {
     #[inline]
     fn into_pin(self) -> Pin<&'a OsStr> {
         Pin::new(self.as_os_str())
     }
 }
 
-impl <'a> IntoPin<&'a OsStr> for &'a mut PathBuf {
+impl<'a> IntoPin<&'a OsStr> for &'a mut PathBuf {
     #[inline]
     fn into_pin(self) -> Pin<&'a OsStr> {
         Pin::new(self.as_os_str())
@@ -332,14 +356,14 @@ impl <'a> IntoPin<&'a OsStr> for &'a mut PathBuf {
 ///////////////////////////////////////////////
 // PATH IMPL
 ///////////////////////////////////////////////
-impl <'a> IntoPin<&'a OsStr> for &'a Path {
+impl<'a> IntoPin<&'a OsStr> for &'a Path {
     #[inline]
     fn into_pin(self) -> Pin<&'a OsStr> {
         Pin::new(self.as_os_str())
     }
 }
 
-impl <'a> IntoPin<&'a OsStr> for &'a mut Path {
+impl<'a> IntoPin<&'a OsStr> for &'a mut Path {
     #[inline]
     fn into_pin(self) -> Pin<&'a OsStr> {
         Pin::new(self.as_os_str())
@@ -373,28 +397,28 @@ impl IntoPin<PathBuf> for OsString {
     }
 }
 
-impl <'a> IntoPin<&'a OsStr> for &'a OsString {
+impl<'a> IntoPin<&'a OsStr> for &'a OsString {
     #[inline]
     fn into_pin(self) -> Pin<&'a OsStr> {
         Pin::new(self)
     }
 }
 
-impl <'a> IntoPin<&'a OsStr> for &'a mut OsString {
+impl<'a> IntoPin<&'a OsStr> for &'a mut OsString {
     #[inline]
     fn into_pin(self) -> Pin<&'a OsStr> {
         Pin::new(self)
     }
 }
 
-impl <'a> IntoPin<&'a Path> for &'a OsString {
+impl<'a> IntoPin<&'a Path> for &'a OsString {
     #[inline]
     fn into_pin(self) -> Pin<&'a Path> {
         Pin::new(self.as_ref())
     }
 }
 
-impl <'a> IntoPin<&'a Path> for &'a mut OsString {
+impl<'a> IntoPin<&'a Path> for &'a mut OsString {
     #[inline]
     fn into_pin(self) -> Pin<&'a Path> {
         Pin::new((&*self).as_ref())
@@ -406,7 +430,7 @@ impl <'a> IntoPin<&'a Path> for &'a mut OsString {
 ///////////////////////////////////////////////
 // OSSTR IMPL
 ///////////////////////////////////////////////
-impl <'a> IntoPin<&'a Path> for &'a OsStr {
+impl<'a> IntoPin<&'a Path> for &'a OsStr {
     #[inline]
     fn into_pin(self) -> Pin<&'a Path> {
         Pin::new(self.as_ref())
@@ -418,10 +442,10 @@ impl <'a> IntoPin<&'a Path> for &'a OsStr {
 ///////////////////////////////////////////////
 // BOX IMPL
 ///////////////////////////////////////////////
-impl<T: Unpin + ?Sized> IntoPin<Box<T>> for Box<T> {
+impl<T: ?Sized> IntoPin<Box<T>> for Box<T> {
     #[inline]
     fn into_pin(self) -> Pin<Self> {
-        Pin::new(self)
+        self.into()
     }
 }
 
@@ -453,7 +477,7 @@ impl IntoPin<Box<[u8]>> for Box<str> {
     }
 }
 
-impl <T: Unpin> IntoPin<Vec<T>> for Box<[T]> {
+impl<T: Unpin> IntoPin<Vec<T>> for Box<[T]> {
     #[inline]
     fn into_pin(self) -> Pin<Vec<T>> {
         Pin::new(<[T]>::into_vec(self))

@@ -188,9 +188,9 @@ fn pinned_str_to_pinned_bytes() {
     fn quark<'a, R, P>(x: R)
     where
         R: Borrow<P>,
-        P: IntoPin<&'a [u8]>
+        P: IntoPin<&'a [u8]>,
     {
-        x.borrow().into_pin();
+        let f: Pin<&_> = (&x.borrow()).into_pin();
     }
 
     let s = "hello";
@@ -199,7 +199,6 @@ fn pinned_str_to_pinned_bytes() {
 
     let pinned_str: Pin<&[u8]> = s.into_pin();
     quark(pinned_str);
-    
 }
 
 #[test]
@@ -208,16 +207,17 @@ fn test_pinning() {
 
     fn quarck<'a, T>(x: T)
     where
-        T: IntoPin<&'a [u8]>
+        T: IntoPin<&'a [u8]>,
     {
 
     }
 
-    let mut s = "foo";
+    let s = "foo";
 
     quarck(s);
 
-    let mut b: Pin<Box<[u8]>> = Box::new([1, 2, 3, 4]).into_pin();
+    let b: Box<[u8]> = Box::new([1, 2, 3, 4]);
+    let mut b: Pin<Box<[u8]>> = b.into_pin();
 
-    quarck(&mut b);
+    quarck(&mut *b);
 }
